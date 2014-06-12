@@ -30,19 +30,19 @@ case class IMSI_RequestBody(vimsi: String = "+12121", msisdn: String = "+8623323
 
 class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with GivenWhenThen with concurrent.ScalaFutures with RestClientConfig with GeneratorDrivenPropertyChecks {
 
-    var aog: RestServer = _
+    var aServer: RestServer = _
     var request4Check: RestRequest = _
 
     describe("Rest server and client DSL Testing") {
 
         before {
-            aog = "Server" on 0
+            aServer = "Server" on 0
 
         }
 
         after {
             Thread.sleep(2000)
-            aog.stop
+            aServer.stop
         }
 
         it("Should on 38080 success") {
@@ -87,7 +87,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             When("Prepare server resource and startup")
 
-            aog own resource when CREATE given request then {
+            aServer own resource when CREATE given request then {
                 req: RestRequest => response
             } and resource when QUERY given requestDouble then {
                 req: RestRequest => response
@@ -97,7 +97,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             Then("Client call server, the response status shall be SUCCESS")
 
-            val ses = "SES_Client" -> LOCAL_HOST on aog.serverPort
+            val ses = "SES_Client" -> LOCAL_HOST on aServer.serverPort
 
             ses ask_for resource to QUERY by request should SUCCESS and_with {
                 resp: RestResponse =>
@@ -146,7 +146,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             When("Prepare server resource and startup")
 
-            aog own resource when CREATE given request then {
+            aServer own resource when CREATE given request then {
                 req: RestRequest =>
                     {
                         response
@@ -155,7 +155,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             Then("Client call server, the response status shall be SUCCESS")
 
-            val ses = "SES_Client" -> LOCAL_HOST on aog.serverPort
+            val ses = "SES_Client" -> LOCAL_HOST on aServer.serverPort
 
             ses ask_for resource to CREATE by request should SUCCESS and_with {
                 resp: RestResponse =>
@@ -185,7 +185,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             When("Prepare server resource and startup")
 
-            aog own resource when DELETE given request then {
+            aServer own resource when DELETE given request then {
                 req: RestRequest =>
                     {
                         response
@@ -194,16 +194,16 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             Then("Client call server, the response status shall be SUCCESS")
 
-            val ses = "SES_Client" -> LOCAL_HOST on aog.serverPort
+            val ses = "SES_Client" -> LOCAL_HOST on aServer.serverPort
 
             ses ask_for resource to DELETE by request should SUCCESS and_with {
                 resp: RestResponse =>
                     {
                         resp.statusCode shouldBe 200
-                        aog shouldHitTimes (resource, CREATE, request, 1)
-                        aog shouldHitOnce (resource, CREATE, request)
-                        aog shouldHitAtLeast (resource, CREATE, request, 1)
-                        aog shouldHitAtMost (resource, CREATE, request, 1)
+                        aServer shouldHitTimes (resource, CREATE, request, 1)
+                        aServer shouldHitOnce (resource, CREATE, request)
+                        aServer shouldHitAtLeast (resource, CREATE, request, 1)
+                        aServer shouldHitAtMost (resource, CREATE, request, 1)
                     }
             } end
 
@@ -239,12 +239,12 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
                     }
             }
 
-            req_resp.foldLeft(aog) {
+            req_resp.foldLeft(aServer) {
                 (serv, t: (RestRequest, RestResponse)) =>
                     serv own resource when DELETE given t._1 then { req => t._2 } end
             } run
 
-            val ses = "SES_Client" -> LOCAL_HOST on aog.serverPort
+            val ses = "SES_Client" -> LOCAL_HOST on aServer.serverPort
 
             Then("Client call server, the response status shall be SUCCESS with response")
 
@@ -315,12 +315,12 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             When("Prepare server resource and startup")
 
-            req_resp.foldLeft(aog) {
+            req_resp.foldLeft(aServer) {
                 (serv, t: (RestRequest, RestResponse)) =>
                     serv own resource1 when DELETE given t._1 then { req => t._2 } end
             }
 
-            req_resp2.foldLeft(aog) {
+            req_resp2.foldLeft(aServer) {
                 (serv, t: (RestRequest, RestResponse)) =>
                     serv own resource1 when QUERY given t._1 then { req => t._2 } end
             } run
@@ -332,7 +332,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             (1 to 20) foreach {
                 i =>
-                    val worker = new RestClientWorkActor("Client" + i, masterActor, aog, LOCAL_HOST, aog.serverPort, {
+                    val worker = new RestClientWorkActor("Client" + i, masterActor, aServer, LOCAL_HOST, aServer.serverPort, {
                         (server, resource, req, operation, resp, resultResponse) =>
 
                             //							println("[Test]run check for " + operation + ", status is " + resultResponse.statusCode)
