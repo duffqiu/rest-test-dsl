@@ -1,10 +1,5 @@
 package org.duffqiu.rest.common
 
-abstract class RestBody {
+abstract class RestBody
 
-}
-
-
-case object EmptyBody extends RestBody {
-
-}
+case object EmptyBody extends RestBody

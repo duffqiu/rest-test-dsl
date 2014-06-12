@@ -1,6 +1,6 @@
 package org.duffqiu.rest.common
 
-abstract class RestOperation(name:String) {
+abstract class RestOperation(name: String) {
     def apply() = name
 }
 
