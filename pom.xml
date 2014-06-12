@@ -17,11 +17,7 @@
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.scala-lang</groupId>
-			<artifactId>scala-library</artifactId>
-			<version>${scala.version}</version>
-		</dependency>
+
 		<dependency>
 			<groupId>net.liftweb</groupId>
 			<artifactId>lift-json_${scala.tools.version}</artifactId>
@@ -31,12 +27,6 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.11</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.scalamacros</groupId>
-			<artifactId>quasiquotes_${scala.tools.version}</artifactId>
-			<version>2.1.0-M1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -66,6 +56,16 @@
 			<artifactId>moco-core</artifactId>
 			<version>0.9.1</version>
             <scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.scala-lang</groupId>
+			<artifactId>scala-library</artifactId>
+			<version>${scala.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.scala-lang</groupId>
+			<artifactId>scala-actors</artifactId>
+			<version>${scala.version}</version>
 		</dependency>
 	</dependencies>
 
@@ -107,14 +107,7 @@
 							<goal>compile</goal>
 							<goal>testCompile</goal>
 						</goals>
-						<configuration>
-							<args>
-								<arg>-dependencyfile</arg>
-								<arg>${project.build.directory}/.scala_dependencies</arg>
-								<arg>-feature</arg>
-								<arg>-deprecation</arg>
-							</args>
-						</configuration>
+
 					</execution>
 				</executions>
 			</plugin>

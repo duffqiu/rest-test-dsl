@@ -13,16 +13,21 @@ import com.github.dreamhead.moco.Moco.query
 import com.github.dreamhead.moco.Moco.seq
 import com.github.dreamhead.moco.Moco.text
 import com.github.dreamhead.moco.Moco.uri
+import com.github.dreamhead.moco.MocoRequestHit.atLeast
+import com.github.dreamhead.moco.MocoRequestHit.atMost
+import com.github.dreamhead.moco.MocoRequestHit.never
+import com.github.dreamhead.moco.MocoRequestHit.once
+import com.github.dreamhead.moco.MocoRequestHit.requestHit
+import com.github.dreamhead.moco.MocoRequestHit.times
 import com.github.dreamhead.moco.Runner
 import com.github.dreamhead.moco.Runner.runner
 import com.github.dreamhead.moco.handler.AndResponseHandler
 import com.github.dreamhead.moco.handler.StatusCodeResponseHandler
-import com.github.dreamhead.moco.MocoRequestHit.requestHit
-import com.github.dreamhead.moco.MocoRequestHit._
 
 class RestServer(val name: String = "MocoServer", val port: Int = 18080) {
-    val hit = requestHit()
-    val server = httpserver(port, hit)
+    val hit = requestHit() // not used when using log
+    val server = port match { case 0 => httpserver(hit); case _ => httpserver(port, hit) }
+
     val mocoRun: Runner = runner(server)
 
     def startup = {
@@ -49,6 +54,7 @@ class RestServer(val name: String = "MocoServer", val port: Int = 18080) {
         val matcher = buildMocoMatcher(resource, operation, request)
 
         server.request(matcher).response(handlers)
+
     }
 
     def shouldHitTimes(resource: RestResource, operation: RestOperation, request: RestRequest, hitTimes: Int) {
@@ -56,22 +62,24 @@ class RestServer(val name: String = "MocoServer", val port: Int = 18080) {
         val matcher = buildMocoMatcher(resource, operation, request)
 
         //doesn't support hit matcher on method if rest style is RPC_Style since the method is always POST
-        hit.verify(matcher, times(hitTimes))
+        hit.synchronized {
+            hit.verify(matcher, times(hitTimes))
+        }
+
     }
 
     def shouldHitOnce(resource: RestResource, operation: RestOperation, request: RestRequest) {
 
         val matcher = buildMocoMatcher(resource, operation, request)
-
-        //moco doesn't support hit matcher on method
-        hit.verify(matcher, once)
+        hit.synchronized {
+            hit.verify(matcher, once)
+        }
     }
 
     def shouldHitNever(resource: RestResource, operation: RestOperation, request: RestRequest) {
 
         val matcher = buildMocoMatcher(resource, operation, request)
 
-        //moco doesn't support hit matcher on method
         hit.verify(matcher, never)
     }
 
@@ -79,16 +87,18 @@ class RestServer(val name: String = "MocoServer", val port: Int = 18080) {
 
         val matcher = buildMocoMatcher(resource, operation, request)
 
-        //moco doesn't support hit matcher on method
-        hit.verify(matcher, atMost(hitTimes))
+        hit.synchronized {
+            hit.verify(matcher, atMost(hitTimes))
+        }
     }
 
     def shouldHitAtLeast(resource: RestResource, operation: RestOperation, request: RestRequest, hitTimes: Int) {
 
         val matcher = buildMocoMatcher(resource, operation, request)
 
-        //moco doesn't support hit matcher on method
-        hit.verify(matcher, atLeast(hitTimes))
+        hit.synchronized {
+            hit.verify(matcher, atLeast(hitTimes))
+        }
     }
 
     private def buildMocoHandlers(response: RestResponse) = {
@@ -118,7 +128,10 @@ class RestServer(val name: String = "MocoServer", val port: Int = 18080) {
             (input: String, t: (String, String)) => input.replaceAllLiterally(t._1, t._2)
         }
 
-        val matcherWithBody = and(by(uri(fullPath)), by(Moco.method(operationName)), json(text(request.bodyJson)))
+        val matcherWithBody = request.body match {
+            case EmptyBody => and(by(uri(fullPath)), by(Moco.method(operationName)))
+            case _ => and(by(uri(fullPath)), by(Moco.method(operationName)), json(text(request.bodyJson)))
+        }
 
         val matcherWithHeader = request.headerPara().foldLeft(matcherWithBody) {
             (m, t) => and(m, Moco.eq(header(t._1), t._2))
