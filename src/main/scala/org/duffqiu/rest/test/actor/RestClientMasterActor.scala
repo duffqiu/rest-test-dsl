@@ -8,15 +8,13 @@ import scala.actors.Actor.State.Terminated
 import scala.actors.Exit
 import scala.actors.TIMEOUT
 
-import org.scalatest.Assertions
-
 /**
  * @author macbook
  *
  * Jun 7, 2014
  */
 
-class RestClientMasterActor() extends Actor with Assertions {
+class RestClientMasterActor() extends Actor {
 
     var workers: List[RestClientWorkActor] = List[RestClientWorkActor]()
     var workIndex = 0

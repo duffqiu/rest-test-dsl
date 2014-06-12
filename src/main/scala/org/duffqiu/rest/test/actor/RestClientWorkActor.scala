@@ -21,14 +21,13 @@ import org.duffqiu.rest.test.dsl.RestClientTestDsl.withClientOperation
 import org.duffqiu.rest.test.dsl.RestClientTestDsl.withClientRequest
 import org.duffqiu.rest.test.dsl.RestClientTestDsl.withClientResource
 import org.duffqiu.rest.test.dsl.RestClientTestDsl.withClientResult
-import org.scalatest.Assertions
 
 /**
  * @author macbook
  *
  * Jun 7, 2014
  */
-class RestClientWorkActor(val name: String, master: RestClientMasterActor, server: RestServer, host: RestHost, serverPort: Int, testFun: (RestServer, RestResource, RestRequest, RestOperation, RestResponse, RestResponse) => Unit) extends Actor with Assertions {
+class RestClientWorkActor(val name: String, master: RestClientMasterActor, server: RestServer, host: RestHost, serverPort: Int, testFun: (RestServer, RestResource, RestRequest, RestOperation, RestResponse, RestResponse) => Unit) extends Actor {
 
     val client = "Client" -> host on serverPort
     var isExit = false
