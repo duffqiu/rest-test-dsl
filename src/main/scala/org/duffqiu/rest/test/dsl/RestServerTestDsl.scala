@@ -20,7 +20,7 @@ object RestServerTestDsl {
         def own(resource: RestResource) = (serv, resource)
         def and(resource: RestResource) = (serv, resource)
         def run = serv.startup
-        def end = Unit
+        def end = serv
     }
 
     class ResourceHelper(wsr: WithServerResource) {
