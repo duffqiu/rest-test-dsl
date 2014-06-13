@@ -7,5 +7,7 @@ private[actor] case object CLIENT_BYE
 
 private[actor] case class RestClientExceptionMessage(name: String, exception: Exception)
 
-case class RestTaskMessage(resource: RestResource, req: RestRequest, operation: RestOperation, resp: RestResponse, expectResult: RestResult)
+case class RestTestTaskBatchMsg(resource: RestResource, operation: RestOperation, reqRespMap: Map[RestRequest, RestResponse], expectResult: RestResult)
+
+case class RestTestTaskMessage(resource: RestResource, req: RestRequest, operation: RestOperation, resp: RestResponse, expectResult: RestResult)
 

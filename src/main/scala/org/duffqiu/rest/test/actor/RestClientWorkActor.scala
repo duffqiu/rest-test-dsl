@@ -29,50 +29,50 @@ import org.duffqiu.rest.test.dsl.RestClientTestDsl.withClientResult
  */
 class RestClientWorkActor(val name: String, master: RestClientMasterActor, server: RestServer, host: RestHost, serverPort: Int, testFun: (RestServer, RestResource, RestRequest, RestOperation, RestResponse, RestResponse) => Unit) extends Actor {
 
-    val client = "Client" -> host on serverPort
-    var isExit = false
+	val client = "Client" -> host on serverPort
+	var isExit = false
 
-    override def act() {
-        trapExit = true
-        link(master)
+	override def act() {
+		trapExit = true
+		link(master)
 
-        loopWhile(!isExit) {
+		loopWhile(!isExit) {
 
-            receiveWithin(6000) {
-                case RestTaskMessage(resource, req, operation, resp, expectResult) => {
-                    //					println("[" + name + "]" + System.currentTimeMillis() + ": begin handler " + operation + " in worker")
+			receiveWithin(6000) {
+				case RestTestTaskMessage(resource, req, operation, resp, expectResult) => {
+					println("[" + name + "]" + System.currentTimeMillis() + ": begin handler " + operation + " in worker")
 
-                    try {
-                        client ask_for resource to operation by req should expectResult and_with {
-                            resultResp: RestResponse =>
-                                testFun(server, resource, req, operation, resp, resultResp)
-                            //								println("[" + name + "]send message by client worker, expect: " + expectResult)
+					try {
+						client ask_for resource to operation by req should expectResult and_with {
+							resultResp: RestResponse =>
+								testFun(server, resource, req, operation, resp, resultResp)
+							//								println("[" + name + "]send message by client worker, expect: " + expectResult)
 
-                        } end
-                    } catch {
+						} end
+					} catch {
 
-                        case e: Exception =>
-                            master ! RestClientExceptionMessage(name, e)
+						case e: Exception =>
+							master ! RestClientExceptionMessage(name, e)
 
-                        case _: Throwable =>
-                            println("[" + name + "]got unknow exception")
-                    }
+						case _: Throwable =>
+							println("[" + name + "]got unknow exception")
+					}
 
-                    //					println("[" + name + "]" + System.currentTimeMillis() + ": end handler " + operation + " in worker")
+					println("[" + name + "]" + System.currentTimeMillis() + ": end handler " + operation + " in worker")
 
-                }
-                case CLIENT_BYE =>
-                    //					println("debug: worker(" + name + ") receive bye from master")
-                    isExit = true
-                case Exit(linked, reason) =>
-                    //					println("master exit because " + reason)
-                    isExit = true;
-                case TIMEOUT =>
-                //					println("timeout in client worker actor(" + name + ")")
+				}
+				case CLIENT_BYE =>
+					//					println("debug: worker(" + name + ") receive bye from master")
+					isExit = true
+				case Exit(linked, reason) =>
+					//					println("master exit because " + reason)
+					isExit = true;
+				case TIMEOUT =>
+				//					println("timeout in client worker actor(" + name + ")")
 
-                case _ =>
-                    println("[" + name + "]receive unknown message in client worker")
-            }
-        }
-    }
+				case _ =>
+					println("[" + name + "]receive unknown message in client worker")
+			}
+		}
+	}
 }
