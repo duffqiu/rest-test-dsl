@@ -22,11 +22,8 @@ class RestClientMasterActor(interval: Int = RestClientMasterActor.DEFAULT_INTERV
 
     var workers: List[RestClientWorkActor] = List[RestClientWorkActor]()
     var workIndex = 0
-
     var exitConfirmCount = 0
-
     var isExit = false
-
     var exceptionList: List[RestClientExceptionMessage] = List[RestClientExceptionMessage]()
 
     override def act(): Unit = {
@@ -82,16 +79,13 @@ class RestClientMasterActor(interval: Int = RestClientMasterActor.DEFAULT_INTERV
     }
 
     private[this] def getWorker = {
-        workIndex = workIndex + 1
-        workers(workIndex % workers.length)
+        workIndex = (workIndex + 1) % workers.length
+        workers(workIndex)
     }
 
     private[this] def shouldNoClientException = {
         if (!exceptionList.isEmpty) {
-            exceptionList.foreach {
-                e =>
-                    throw e.exception
-            }
+            exceptionList.foreach(e => throw e.exception)
         }
     }
 
