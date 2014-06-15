@@ -4,6 +4,7 @@ import scala.collection.Map
 import org.scalatest.enablers.Length
 
 case class RestResource(style: RestStyle = REST_STYLE, path: String = "/") {
+
     def /(pathName: String) = {
 
         //remove the / in the header

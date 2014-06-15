@@ -7,7 +7,12 @@ import dispatch.Http
 import dispatch.Req
 import dispatch.url
 
-class RestClient(val name: String = "RestTestClient", val hostName: RestHost = LOCAL_HOST, val port: Int = 8080) {
+object RestClient {
+    private[common] final val DEFAULT_NAME = "RestTestClient"
+    private[common] final val DEFAULT_PORT = 8080
+}
+
+class RestClient(val name: String = RestClient.DEFAULT_NAME, val hostName: RestHost = LOCAL_HOST, val port: Int = RestClient.DEFAULT_PORT) {
     val host = :/(hostName.name, port)
     val client = new Http()
 
@@ -44,6 +49,7 @@ class RestClient(val name: String = "RestTestClient", val hostName: RestHost = L
         reqWithAll
     }
 
-    def apply() = client
+    def apply(): Http = client
 
 }
+

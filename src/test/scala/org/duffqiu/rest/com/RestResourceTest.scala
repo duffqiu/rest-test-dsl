@@ -1,11 +1,11 @@
 package org.duffqiu.rest.com
 
-import org.scalatest.Matchers
-import org.scalatest.FunSpec
-import org.duffqiu.rest.common.RestResource
 import org.duffqiu.rest.common.REST_STYLE
-
-import org.duffqiu.rest.test.dsl.RestCommonImplicits._
+import org.duffqiu.rest.common.RestResource
+import org.duffqiu.rest.test.dsl.RestCommonImplicits.restStyle2ResourceHelper
+import org.scalatest.Finders
+import org.scalatest.FunSpec
+import org.scalatest.Matchers
 
 class RestResourceTest extends FunSpec with Matchers {
     describe("Test RestResource Construction and Methods") {

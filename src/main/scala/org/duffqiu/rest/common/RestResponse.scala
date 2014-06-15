@@ -1,8 +1,12 @@
 package org.duffqiu.rest.common
 
-import org.duffqiu.rest.common.RestUtility._
+import org.duffqiu.rest.common.RestUtility.asJson
 
-case class RestResponse(statusCode: Int = 200, headerPara: RestParameters = RestParameters("Header"), body: AnyRef = EmptyBody) {
+object RestResponse {
+    private final val DEFAULT_STATUS_CODE = 200
+}
+
+case class RestResponse(statusCode: Int = RestResponse.DEFAULT_STATUS_CODE, headerPara: RestParameters = RestParameters("Header"), body: AnyRef = EmptyBody) {
     val bodyJson: String = body match {
         case s: String => s
         case _ => asJson(body)

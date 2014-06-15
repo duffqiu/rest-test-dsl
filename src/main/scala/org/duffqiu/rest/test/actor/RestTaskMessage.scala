@@ -1,6 +1,10 @@
 package org.duffqiu.rest.test.actor
 
-import org.duffqiu.rest.common._
+import org.duffqiu.rest.common.RestOperation
+import org.duffqiu.rest.common.RestRequest
+import org.duffqiu.rest.common.RestResource
+import org.duffqiu.rest.common.RestResponse
+import org.duffqiu.rest.common.RestResult
 
 case object RUN_REST_SERVER
 

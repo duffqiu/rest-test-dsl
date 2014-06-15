@@ -1,7 +1,7 @@
 package org.duffqiu.rest.common
 
 abstract class RestOperation(name: String) {
-    def apply() = name
+    def apply(): String = name
 }
 
 case object CREATE extends RestOperation("POST")

@@ -1,5 +1,5 @@
 /**
- *
+ * the rest client worker actor
  */
 package org.duffqiu.rest.test.actor
 
@@ -27,18 +27,25 @@ import org.duffqiu.rest.test.dsl.RestClientTestDsl.withClientResult
  *
  * Jun 7, 2014
  */
-class RestClientWorkActor(val name: String, master: RestClientMasterActor, server: RestServer, host: RestHost, serverPort: Int, testFun: (RestServer, RestResource, RestRequest, RestOperation, RestResponse, RestResponse) => Unit) extends Actor {
+
+object RestClientWorkActor {
+    private final val DEFAULT_INTERVAL = 5000
+}
+
+case class RestClientWorkActor(val name: String, master: RestClientMasterActor, server: RestServer, host: RestHost, serverPort: Int,
+                               testFun: (RestServer, RestResource, RestRequest, RestOperation, RestResponse, RestResponse) => Unit,
+                               interval: Int = RestClientWorkActor.DEFAULT_INTERVAL) extends Actor {
 
     val client = name -> host on serverPort
     var isExit = false
 
-    override def act() {
+    override def act(): Unit = {
         trapExit = true
         link(master)
 
         loopWhile(!isExit) {
 
-            receiveWithin(6000) {
+            receiveWithin(interval) {
                 case RestTestTaskMessage(resource, req, operation, resp, expectResult) => {
                     //                    println("[" + name + "]" + System.currentTimeMillis() + ": begin handler " + operation + " in worker")
 
@@ -58,7 +65,7 @@ class RestClientWorkActor(val name: String, master: RestClientMasterActor, serve
                             println("[" + name + "]got unknow exception")
                     }
 
-                    //                    println("[" + name + "]" + System.currentTimeMillis() + ": end handler " + operation + " in worker")
+                    //  println("[" + name + "]" + System.currentTimeMillis() + ": end handler " + operation + " in worker")
 
                 }
                 case CLIENT_BYE =>

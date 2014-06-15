@@ -14,7 +14,11 @@ import scala.actors.TIMEOUT
  * Jun 7, 2014
  */
 
-class RestClientMasterActor() extends Actor {
+object RestClientMasterActor {
+    private final val DEFAULT_INTERVAL = 5000
+}
+
+class RestClientMasterActor(interval: Int = RestClientMasterActor.DEFAULT_INTERVAL) extends Actor {
 
     var workers: List[RestClientWorkActor] = List[RestClientWorkActor]()
     var workIndex = 0
@@ -25,18 +29,16 @@ class RestClientMasterActor() extends Actor {
 
     var exceptionList: List[RestClientExceptionMessage] = List[RestClientExceptionMessage]()
 
-    override def act() {
+    override def act(): Unit = {
         trapExit = true
         loopWhile(!isExit) {
-            receiveWithin(6000) {
+            receiveWithin(interval) {
                 case BYE => {
-
                     //					println("[debug]server receive bye")
                     workers.foreach {
                         worker => worker ! CLIENT_BYE
                     }
                     //					println("finish to send bye to all clients")
-
                 }
                 case RestTestTaskMessage(resource, req, operation, resp, expectResult) => {
                     getWorker ! RestTestTaskMessage(resource, req, operation, resp, expectResult)
@@ -53,7 +55,6 @@ class RestClientMasterActor() extends Actor {
 
                 case TIMEOUT =>
                 //					println("master actor timeout")
-
                 case worker: RestClientWorkActor => {
                     workers = worker :: workers
                     worker.start
@@ -94,11 +95,11 @@ class RestClientMasterActor() extends Actor {
         }
     }
 
-    def stop = {
+    def stop: Unit = {
         this ! BYE
 
         while (this.getState != Terminated) {
-            Thread.sleep(1000)
+            Thread.sleep(interval)
         }
 
         shouldNoClientException

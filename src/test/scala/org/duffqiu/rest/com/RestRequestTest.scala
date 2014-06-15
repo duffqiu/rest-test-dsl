@@ -1,14 +1,16 @@
 package org.duffqiu.rest.com
 
-import org.scalatest.Matchers
-import org.scalatest.FunSpec
 import org.duffqiu.rest.common.EmptyBody
 import org.duffqiu.rest.common.RestBody
-import org.duffqiu.rest.test.dsl.RestCommonImplicits._
 import org.duffqiu.rest.common.RestRequest
+import org.duffqiu.rest.test.dsl.RestCommonImplicits.string2RestRequest
+import org.scalatest.Finders
+import org.scalatest.FunSpec
+import org.scalatest.Matchers
 
 sealed case class VIMSI_VowifiService(serviceName: String = "vowifi", subscriptionStatus: String = "activated")
-sealed case class IMSI_RequestBody(vIMSI: String = "12121", msisdn: String = "+86233232", imsi: String = "234234232432", service: VIMSI_VowifiService = VIMSI_VowifiService()) extends RestBody
+sealed case class IMSI_RequestBody(vIMSI: String = "12121", msisdn: String = "+86233232",
+                                   imsi: String = "234234232432", service: VIMSI_VowifiService = VIMSI_VowifiService()) extends RestBody
 
 class RestRequestTest extends FunSpec with Matchers {
     describe("Test RestRequest Construction and Methods") {
@@ -21,7 +23,11 @@ class RestRequestTest extends FunSpec with Matchers {
         }
 
         it("Should be able to append parameters(query, path, header)") {
-            val request = "Rest request" <</ ("{imsi}", "232323223") <<? ("msisdn", "+8634343") <:< ("Context-Type", "application/json") <<? ("serviceName", "voice")
+            val request = "Rest request" <</
+                ("{imsi}", "232323223") <<?
+                ("msisdn", "+8634343") <:<
+                ("Context-Type", "application/json") <<?
+                ("serviceName", "voice")
 
             request.queryPara("msisdn") shouldBe "+8634343"
             request.queryPara("serviceName") shouldBe "voice"
@@ -30,7 +36,11 @@ class RestRequestTest extends FunSpec with Matchers {
         }
 
         it("Should support to fetch parameter's value with new operation(<</, <<?, <:<)") {
-            val request = "Rest request" <</ ("{imsi}", "232323223") <<? ("msisdn", "+8634343") <:< ("Context-Type", "application/json") <<? ("serviceName", "voice")
+            val request = "Rest request" <</
+                ("{imsi}", "232323223") <<?
+                ("msisdn", "+8634343") <:<
+                ("Context-Type", "application/json") <<?
+                ("serviceName", "voice")
 
             request.>>?("msisdn") shouldBe "+8634343"
             request.>>?("serviceName") shouldBe "voice"

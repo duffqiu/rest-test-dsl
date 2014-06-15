@@ -5,18 +5,16 @@ import scala.collection.convert.WrapAsScala.mapAsScalaMap
 import scala.language.implicitConversions
 import scala.language.postfixOps
 
-import org.scalatest.Assertions
-import org.scalatest.concurrent
-
 import org.duffqiu.rest.common.RestClient
 import org.duffqiu.rest.common.RestClientConfig
 import org.duffqiu.rest.common.RestOperation
-import org.duffqiu.rest.common.RestParameters
 import org.duffqiu.rest.common.RestRequest
 import org.duffqiu.rest.common.RestResource
 import org.duffqiu.rest.common.RestResponse
 import org.duffqiu.rest.common.RestResult
-import org.duffqiu.rest.test.dsl.RestCommonImplicits._
+import org.duffqiu.rest.test.dsl.RestCommonImplicits.string2RestResponse
+import org.scalatest.Assertions
+import org.scalatest.concurrent
 
 import dispatch.Defaults.executor
 import dispatch.Http
@@ -75,9 +73,7 @@ object RestClientTestDsl extends concurrent.ScalaFutures with RestClientConfig w
                         {
                             val statusCode = response.getStatusCode()
                             val body = response.getResponseBody()
-
-                            import scala.collection.convert.WrapAsScala._
-                            val httpHeaders = mapAsScalaMap(response.getHeaders()) toMap
+                            val httpHeaders = mapAsScalaMap(response.getHeaders())
 
                             val headerPara = httpHeaders map {
                                 case (key, value) => {
@@ -89,10 +85,11 @@ object RestClientTestDsl extends concurrent.ScalaFutures with RestClientConfig w
 
                             result.shouldMatch(statusCode) match {
                                 case true => {
-                                    val restResponse = ("RestResponse", statusCode) <:< headerPara <<< body
+                                    val restResponse = ("RestResponse", statusCode) <:< (headerPara toMap) <<< body
                                     resp2test(restResponse)
                                 }
-                                case _ => fail("Expect result is not matched. Expect: " + result() + ", but get: " + statusCode + ", body is " + Option(body).filter(_.trim().nonEmpty).getOrElse("Empty"))
+                                case _ => fail("Expect result is not matched. Expect: " + result() + ", but get: "
+                                    + statusCode + ", body is " + Option(body).filter(_.trim().nonEmpty).getOrElse("Empty"))
                             }
                         }
                 }

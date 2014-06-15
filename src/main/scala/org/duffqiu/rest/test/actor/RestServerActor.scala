@@ -1,23 +1,33 @@
 /**
- *
+ * Copyright (C) 2014 the original author duffqiu@gmail.com
  */
 package org.duffqiu.rest.test.actor
 
 import scala.actors.Actor
-import org.duffqiu.rest.common.RestRequest
-import org.duffqiu.rest.common.RestResponse
+import scala.actors.Actor.State.Terminated
 import scala.actors.Exit
 import scala.actors.TIMEOUT
-import scala.actors.Actor.State._
 
-import org.duffqiu.rest.test.dsl.RestServerTestDsl._
+import org.duffqiu.rest.test.dsl.RestServerTestDsl.Tuple2Server
+import org.duffqiu.rest.test.dsl.RestServerTestDsl.server2ServerHelper
+import org.duffqiu.rest.test.dsl.RestServerTestDsl.string2RestServerHelper
+import org.duffqiu.rest.test.dsl.RestServerTestDsl.withServerOperation
+import org.duffqiu.rest.test.dsl.RestServerTestDsl.withServerRequest
+import org.duffqiu.rest.test.dsl.RestServerTestDsl.withServerResource
+
+object RestServerActor {
+    private[actor] final val DEFAULT_NAME = "RestServer"
+    private[actor] final val DEFAULT_PORT = 0
+    private[actor] final val DEFAULT_INTERVAL = 5000
+}
 
 /**
  * @author macbook
  *
  * Jun 15, 2014
  */
-class RestServerActor(name: String = "RestServer", port: Int = 0, interval: Int = 5000) extends Actor {
+class RestServerActor(name: String = RestServerActor.DEFAULT_NAME, port: Int = RestServerActor.DEFAULT_PORT,
+                      interval: Int = RestServerActor.DEFAULT_INTERVAL) extends Actor {
 
     var isExit = false
 
@@ -25,7 +35,7 @@ class RestServerActor(name: String = "RestServer", port: Int = 0, interval: Int 
 
     //    def restServer = restServ
 
-    override def act() {
+    override def act(): Unit = {
         trapExit = true
 
         loopWhile(!isExit) {
@@ -36,7 +46,7 @@ class RestServerActor(name: String = "RestServer", port: Int = 0, interval: Int 
                 }
 
                 case RestTestResourceMatchMsg(resource, req, operation, resp) => {
-                    //                    println("[Server Actor] config matcher")
+                    // println("[Server Actor] config matcher")
 
                     restServ own resource when operation given req then { req => resp } end
                 }
@@ -65,11 +75,11 @@ class RestServerActor(name: String = "RestServer", port: Int = 0, interval: Int 
         }
     }
 
-    def stop = {
+    def stop: Unit = {
         this ! BYE
 
         while (this.getState != Terminated) {
-            Thread.sleep(1000)
+            Thread.sleep(interval)
         }
     }
 }

@@ -1,11 +1,12 @@
 package org.duffqiu.rest.com
 
-import org.scalatest.Matchers
-import org.scalatest.FunSpec
-import org.duffqiu.rest.common.RestResponse
 import org.duffqiu.rest.common.EmptyBody
 import org.duffqiu.rest.common.RestBody
-import org.duffqiu.rest.test.dsl.RestCommonImplicits._
+import org.duffqiu.rest.common.RestResponse
+import org.duffqiu.rest.test.dsl.RestCommonImplicits.string2RestResponse
+import org.scalatest.Finders
+import org.scalatest.FunSpec
+import org.scalatest.Matchers
 
 sealed case class VowifiService(serviceName: String = "vowifi", subscriptionStatus: String = "activated")
 sealed case class IMSI_ResponseBody(vIMSI: String = "12121", msisdn: String = "+86233232", imsi: String = "234234232432", service: VowifiService = VowifiService()) extends RestBody
@@ -30,3 +31,4 @@ class RestResponseTest extends FunSpec with Matchers {
 
     }
 }
+

@@ -24,7 +24,12 @@ import com.github.dreamhead.moco.Runner.runner
 import com.github.dreamhead.moco.handler.AndResponseHandler
 import com.github.dreamhead.moco.handler.StatusCodeResponseHandler
 
-class RestServer(val name: String = "MocoServer", val port: Int = 18080) {
+object RestServer {
+    private[common] final val DEFAULT_NAME = "MocoServer"
+    private[common] final val DEFAULT_PORT = 8080
+}
+
+class RestServer(val name: String = RestServer.DEFAULT_NAME, val port: Int = RestServer.DEFAULT_PORT) {
     val hit = requestHit() // not used when using log
     val server = port match { case 0 => httpserver(hit); case _ => httpserver(port, hit) }
 
@@ -48,7 +53,7 @@ class RestServer(val name: String = "MocoServer", val port: Int = 18080) {
 
     def apply() = server
 
-    def configMock(resource: RestResource, operation: RestOperation, request: RestRequest, response: RestResponse) {
+    def configMock(resource: RestResource, operation: RestOperation, request: RestRequest, response: RestResponse): Unit = {
         val handlers = buildMocoHandlers(response)
 
         val matcher = buildMocoMatcher(resource, operation, request)
@@ -57,7 +62,7 @@ class RestServer(val name: String = "MocoServer", val port: Int = 18080) {
 
     }
 
-    def shouldHitTimes(resource: RestResource, operation: RestOperation, request: RestRequest, hitTimes: Int) {
+    def shouldHitTimes(resource: RestResource, operation: RestOperation, request: RestRequest, hitTimes: Int): Unit = {
 
         val matcher = buildMocoMatcher(resource, operation, request)
 
@@ -68,7 +73,7 @@ class RestServer(val name: String = "MocoServer", val port: Int = 18080) {
 
     }
 
-    def shouldHitOnce(resource: RestResource, operation: RestOperation, request: RestRequest) {
+    def shouldHitOnce(resource: RestResource, operation: RestOperation, request: RestRequest): Unit = {
 
         val matcher = buildMocoMatcher(resource, operation, request)
         hit.synchronized {
@@ -76,14 +81,15 @@ class RestServer(val name: String = "MocoServer", val port: Int = 18080) {
         }
     }
 
-    def shouldHitNever(resource: RestResource, operation: RestOperation, request: RestRequest) {
+    def shouldHitNever(resource: RestResource, operation: RestOperation, request: RestRequest): Unit = {
 
         val matcher = buildMocoMatcher(resource, operation, request)
-
-        hit.verify(matcher, never)
+        hit.synchronized {
+            hit.verify(matcher, never)
+        }
     }
 
-    def shouldHitAtMost(resource: RestResource, operation: RestOperation, request: RestRequest, hitTimes: Int) {
+    def shouldHitAtMost(resource: RestResource, operation: RestOperation, request: RestRequest, hitTimes: Int): Unit = {
 
         val matcher = buildMocoMatcher(resource, operation, request)
 
@@ -92,7 +98,7 @@ class RestServer(val name: String = "MocoServer", val port: Int = 18080) {
         }
     }
 
-    def shouldHitAtLeast(resource: RestResource, operation: RestOperation, request: RestRequest, hitTimes: Int) {
+    def shouldHitAtLeast(resource: RestResource, operation: RestOperation, request: RestRequest, hitTimes: Int): Unit = {
 
         val matcher = buildMocoMatcher(resource, operation, request)
 
@@ -108,9 +114,6 @@ class RestServer(val name: String = "MocoServer", val port: Int = 18080) {
         val contentHandler = seq(text(response.bodyJson));
 
         val responseHandler = statusHandler :: contentHandler :: headerHandlerList
-
-        import scala.collection.convert.WrapAsJava._
-        import scala.collection.JavaConverters._
 
         val handlers = new AndResponseHandler(responseHandler.asJava)
 

@@ -1,33 +1,56 @@
 package org.duffqiu.rest.test.dsl
 
+import scala.collection.JavaConversions.mapAsScalaConcurrentMap
 import scala.language.postfixOps
+
+import org.duffqiu.rest.common.CLIENTERROR
+import org.duffqiu.rest.common.CREATE
+import org.duffqiu.rest.common.DELETE
+import org.duffqiu.rest.common.LOCAL_HOST
+import org.duffqiu.rest.common.QUERY
+import org.duffqiu.rest.common.REST_STYLE
+import org.duffqiu.rest.common.RPC_STYLE
+import org.duffqiu.rest.common.RestBody
+import org.duffqiu.rest.common.RestClientConfig
+import org.duffqiu.rest.common.RestRequest
+import org.duffqiu.rest.common.RestResponse
+import org.duffqiu.rest.common.RestServer
+import org.duffqiu.rest.common.SUCCESS
+import org.duffqiu.rest.test.actor.RUN_REST_SERVER
+import org.duffqiu.rest.test.actor.RestClientMasterActor
+import org.duffqiu.rest.test.actor.RestClientWorkActor
+import org.duffqiu.rest.test.actor.RestServerActor
+import org.duffqiu.rest.test.actor.RestTestResourceBatchMatchMsg
+import org.duffqiu.rest.test.actor.RestTestTaskBatchMsg
+import org.duffqiu.rest.test.dsl.RestClientTestDsl.Tuple2Client
+import org.duffqiu.rest.test.dsl.RestClientTestDsl.client2ClientHelper
+import org.duffqiu.rest.test.dsl.RestClientTestDsl.string2RestClientHelper
+import org.duffqiu.rest.test.dsl.RestClientTestDsl.withClientOperation
+import org.duffqiu.rest.test.dsl.RestClientTestDsl.withClientRequest
+import org.duffqiu.rest.test.dsl.RestClientTestDsl.withClientResource
+import org.duffqiu.rest.test.dsl.RestClientTestDsl.withClientResult
+import org.duffqiu.rest.test.dsl.RestCommonImplicits.restStyle2ResourceHelper
+import org.duffqiu.rest.test.dsl.RestCommonImplicits.string2RestRequest
+import org.duffqiu.rest.test.dsl.RestCommonImplicits.string2RestResponse
+import org.duffqiu.rest.test.dsl.RestServerTestDsl.Tuple2Server
+import org.duffqiu.rest.test.dsl.RestServerTestDsl.server2ServerHelper
+import org.duffqiu.rest.test.dsl.RestServerTestDsl.string2RestServerHelper
+import org.duffqiu.rest.test.dsl.RestServerTestDsl.withServerOperation
+import org.duffqiu.rest.test.dsl.RestServerTestDsl.withServerRequest
+import org.duffqiu.rest.test.dsl.RestServerTestDsl.withServerResource
+import org.scalacheck.Gen
 import org.scalatest.BeforeAndAfter
+import org.scalatest.Finders
 import org.scalatest.FunSpec
 import org.scalatest.GivenWhenThen
 import org.scalatest.Matchers
 import org.scalatest.concurrent
-import org.duffqiu.rest.common._
-import org.duffqiu.rest.test.dsl.RestClientTestDsl._
-import org.duffqiu.rest.test.dsl.RestServerTestDsl._
-import org.duffqiu.rest.test.dsl.RestCommonImplicits._
-import dispatch.:/
-import dispatch.Defaults.executor
-import dispatch.Http
-import dispatch.implyRequestHandlerTuple
-import dispatch.url
-import net.liftweb.json.parse
-import net.liftweb.json.DefaultFormats
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalacheck.Arbitrary
-import org.scalacheck.Gen
-import org.duffqiu.rest.test.actor.RestClientMasterActor
-import org.duffqiu.rest.test.actor.RestClientWorkActor
-import org.duffqiu.rest.test.actor.RestTestTaskMessage
-import org.duffqiu.rest.test.actor.RestTestTaskBatchMsg
-import org.duffqiu.rest.test.actor.RestServerActor
-import org.duffqiu.rest.test.actor.RestTestResourceBatchMatchMsg
-import org.duffqiu.rest.test.actor.RUN_REST_SERVER
 
+import net.liftweb.json.DefaultFormats
+import net.liftweb.json.parse
+            
+            
 case class VIMSI_VowifiService(serviceName: String = "vowifi", subscriptionStatus: String = "activated")
 case class IMSI_RequestBody(vimsi: String = "+12121", msisdn: String = "+86233232", imsi: String = "+234234232432", service: VIMSI_VowifiService = VIMSI_VowifiService()) extends RestBody
 
@@ -125,7 +148,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
                         val jsValue = parse(resp.bodyJson)
                         implicit val formats = DefaultFormats
-                        import scala.collection.JavaConversions._
+
                         val imsi = (jsValue \\ "imsi").extract[String]
                         val serviceName = (jsValue \\ "service" \\ "serviceName").extract[String]
 
@@ -220,7 +243,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
             val reqs = for {
                 tel <- Gen.oneOf("tel:", "+")
                 vimsiRamdom <- Gen.numStr
-                vimsi <- Gen.value(vimsiRamdom match { case x: String if (x != null && x.length() > 10 && x.length() < 20) => x; case _ => "89900" })
+                vimsi <- Gen.value(Option(vimsiRamdom) match { case Some(x) if (x.length() > 10 && x.length() < 20) => x; case _ => "89900" })
                 imsi <- Gen.numStr
                 serviceName <- Gen.oneOf("vowifi", "mca", "vvm")
                 subscriptionStatus <- Gen.oneOf("activated", "deactivated")
@@ -228,7 +251,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             When("Prepare server resource and startup")
 
-            import scala.collection.JavaConversions._
+
             val req_resp: scala.collection.mutable.Map[RestRequest, RestResponse] = new java.util.concurrent.ConcurrentHashMap[RestRequest, RestResponse]
 
             forAll(reqs, workers(10)) {
@@ -252,14 +275,15 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
             Then("Client call server, the response status shall be SUCCESS with response")
 
             //can'tuse par when need to use hit methods
-            for (t <- req_resp.par) {
-                ses ask_for resource to DELETE by t._1 should SUCCESS and_with {
-                    resp: RestResponse =>
-                        {
-                            resp.statusCode shouldBe 200
-                            resp.body shouldEqual t._2.bodyJson
-                        }
-                } end
+            req_resp.par.foreach {
+                t =>
+                    ses ask_for resource to DELETE by t._1 should SUCCESS and_with {
+                        resp: RestResponse =>
+                            {
+                                resp.statusCode shouldBe 200
+                                resp.body shouldEqual t._2.bodyJson
+                            }
+                    } end
 
             }
 
@@ -274,13 +298,12 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
             val reqs = for {
                 tel <- Gen.oneOf("tel:", "+")
                 vimsiRamdom <- Gen.numStr
-                vimsi <- Gen.const(vimsiRamdom match { case x: String if (x != null && x.length() > 10 && x.length() < 20) => x; case _ => "89900" })
+                vimsi <- Gen.const(Option(vimsiRamdom) match { case Some(x) if (x.length() > 10 && x.length() < 20) => x; case _ => "89900" })
                 imsi <- Gen.numStr
                 serviceName <- Gen.oneOf("vowifi", "mca", "vvm")
                 subscriptionStatus <- Gen.oneOf("activated", "deactivated")
             } yield ("Request" <</ ("{vimsi}", tel + vimsi) <:< ("Content-Type", "application/json") <:< ("location", "us") <<< IMSI_RequestBody(imsi = imsi, service = VIMSI_VowifiService(subscriptionStatus = subscriptionStatus, serviceName = serviceName)) <<? ("subscriptionstatus", subscriptionStatus))
 
-            import scala.collection.JavaConversions._
             val req_resp: scala.collection.mutable.Map[RestRequest, RestResponse] = new java.util.concurrent.ConcurrentHashMap[RestRequest, RestResponse]
 
             forAll(reqs, workers(5)) {
@@ -297,7 +320,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
             val reqs2 = for {
                 tel <- Gen.oneOf("tel:", "+")
                 vimsiRamdom <- Gen.numStr
-                vimsi <- Gen.const(vimsiRamdom match { case x: String if (x != null && x.length() > 10 && x.length() < 20) => x; case _ => "89900" })
+                vimsi <- Gen.const(Option(vimsiRamdom) match { case Some(x) if (x.length() > 10 && x.length() < 20) => x; case _ => "89900" })
                 imsi <- Gen.numStr
                 serviceName <- Gen.oneOf("vowifi", "icloud", "vvm")
                 subscriptionStatus <- Gen.oneOf("activated", "deactivated", "enabled", "disabled")
