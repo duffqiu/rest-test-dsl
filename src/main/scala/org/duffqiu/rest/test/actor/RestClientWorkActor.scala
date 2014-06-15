@@ -29,7 +29,7 @@ import org.duffqiu.rest.test.dsl.RestClientTestDsl.withClientResult
  */
 class RestClientWorkActor(val name: String, master: RestClientMasterActor, server: RestServer, host: RestHost, serverPort: Int, testFun: (RestServer, RestResource, RestRequest, RestOperation, RestResponse, RestResponse) => Unit) extends Actor {
 
-    val client = "Client" -> host on serverPort
+    val client = name -> host on serverPort
     var isExit = false
 
     override def act() {
