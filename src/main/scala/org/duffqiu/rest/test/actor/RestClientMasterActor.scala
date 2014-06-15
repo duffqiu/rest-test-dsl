@@ -45,7 +45,7 @@ class RestClientMasterActor() extends Actor {
 
                 case RestTestTaskBatchMsg(resource, operation, reqRespMap, expectResult) =>
                     //can't use par since getWorker is not thread safe
-                    println("[Client Master Actor] receive batch messsage and spit them to send to worker actors")
+                    //                    println("[Client Master Actor] receive batch messsage and spit them to send to worker actors")
                     reqRespMap.foreach {
                         t =>
                             getWorker ! RestTestTaskMessage(resource, t._1, operation, t._2, expectResult)

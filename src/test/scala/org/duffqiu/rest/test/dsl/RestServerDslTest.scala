@@ -24,6 +24,9 @@ import org.duffqiu.rest.test.actor.RestClientMasterActor
 import org.duffqiu.rest.test.actor.RestClientWorkActor
 import org.duffqiu.rest.test.actor.RestTestTaskMessage
 import org.duffqiu.rest.test.actor.RestTestTaskBatchMsg
+import org.duffqiu.rest.test.actor.RestServerActor
+import org.duffqiu.rest.test.actor.RestTestResourceBatchMatchMsg
+import org.duffqiu.rest.test.actor.RUN_REST_SERVER
 
 case class VIMSI_VowifiService(serviceName: String = "vowifi", subscriptionStatus: String = "activated")
 case class IMSI_RequestBody(vimsi: String = "+12121", msisdn: String = "+86233232", imsi: String = "+234234232432", service: VIMSI_VowifiService = VIMSI_VowifiService()) extends RestBody
@@ -315,15 +318,19 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             When("Prepare server resource and startup")
 
-            req_resp.foldLeft(aServer) {
-                (serv, t: (RestRequest, RestResponse)) =>
-                    serv own resource1 when DELETE given t._1 then { req => t._2 } end
-            }
+            val servActor = new RestServerActor("RestServer", 38080)
 
-            req_resp2.foldLeft(aServer) {
-                (serv, t: (RestRequest, RestResponse)) =>
-                    serv own resource1 when QUERY given t._1 then { req => t._2 } end
-            } run
+            servActor.start
+
+            servActor ! RestTestResourceBatchMatchMsg(resource1, DELETE, req_resp.toMap)
+            servActor ! RestTestResourceBatchMatchMsg(resource1, QUERY, req_resp2.toMap)
+
+            //get the RestServer after run
+            val restServ = servActor !? RUN_REST_SERVER match {
+                case server: RestServer => server
+                case _ =>
+                    fail("[Test] got unknow message from rest server actor")
+            }
 
             And("Start client master and client workers")
 
@@ -332,7 +339,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             (1 to 20) foreach {
                 i =>
-                    val worker = new RestClientWorkActor("Client" + i, masterActor, aServer, LOCAL_HOST, aServer.serverPort, {
+                    val worker = new RestClientWorkActor("Client" + i, masterActor, restServ, LOCAL_HOST, restServ.serverPort, {
                         case (server, resource1, req, QUERY, resp, resultResponse) =>
                             {
                                 resultResponse.statusCode shouldBe 200
@@ -360,8 +367,10 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
             masterActor ! RestTestTaskBatchMsg(resource1, QUERY, req_resp2.toMap, SUCCESS)
 
             masterActor.stop
-
             println("!!!master actor exit")
+
+            servActor.stop
+            println("!!!server actor exit")
 
         }
     }

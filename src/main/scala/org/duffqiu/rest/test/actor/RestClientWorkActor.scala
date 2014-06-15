@@ -40,7 +40,7 @@ class RestClientWorkActor(val name: String, master: RestClientMasterActor, serve
 
             receiveWithin(6000) {
                 case RestTestTaskMessage(resource, req, operation, resp, expectResult) => {
-                    println("[" + name + "]" + System.currentTimeMillis() + ": begin handler " + operation + " in worker")
+                    //                    println("[" + name + "]" + System.currentTimeMillis() + ": begin handler " + operation + " in worker")
 
                     try {
                         client ask_for resource to operation by req should expectResult and_with {
@@ -58,7 +58,7 @@ class RestClientWorkActor(val name: String, master: RestClientMasterActor, serve
                             println("[" + name + "]got unknow exception")
                     }
 
-                    println("[" + name + "]" + System.currentTimeMillis() + ": end handler " + operation + " in worker")
+                    //                    println("[" + name + "]" + System.currentTimeMillis() + ": end handler " + operation + " in worker")
 
                 }
                 case CLIENT_BYE =>
