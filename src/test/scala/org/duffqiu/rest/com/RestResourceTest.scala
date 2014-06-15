@@ -16,9 +16,9 @@ class RestResourceTest extends FunSpec with Matchers {
         }
 
         it("Should support implicit create resource with style") {
-            val resource = REST_STYLE / "/vimsi"
+            val resource = REST_STYLE / "/ximsi"
             resource.style shouldBe REST_STYLE
-            assert(resource.path === "/vimsi")
+            assert(resource.path === "/ximsi")
 
         }
 

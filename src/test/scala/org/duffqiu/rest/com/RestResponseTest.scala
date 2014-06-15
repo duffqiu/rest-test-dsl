@@ -9,7 +9,8 @@ import org.scalatest.FunSpec
 import org.scalatest.Matchers
 
 sealed case class VowifiService(serviceName: String = "vowifi", subscriptionStatus: String = "activated")
-sealed case class IMSI_ResponseBody(vIMSI: String = "12121", msisdn: String = "+86233232", imsi: String = "234234232432", service: VowifiService = VowifiService()) extends RestBody
+sealed case class IMSI_ResponseBody(vIMSI: String = "12121", msisdn: String = "+86233232", imsi: String = "234234232432",
+                                    service: VowifiService = VowifiService()) extends RestBody
 
 class RestResponseTest extends FunSpec with Matchers {
     describe("Test RestReponse Construction and Methods") {
