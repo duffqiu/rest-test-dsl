@@ -3,6 +3,7 @@
  */
 package org.duffqiu.rest.test.actor
 
+import scala.language.postfixOps
 import scala.actors.Actor
 import scala.actors.Actor.State.Terminated
 import scala.actors.Exit
