@@ -13,6 +13,8 @@
 		<scala.version>2.10.4</scala.version>
 		<maven.compiler.source>1.7</maven.compiler.source>
 		<maven.compiler.target>1.7</maven.compiler.target>
+		<scoverage-plugin.version>0.99.5</scoverage-plugin.version>
+		<maven.plugin.scoverage.version>0.99.2</maven.plugin.scoverage.version>
 		<encoding>UTF-8</encoding>
 	</properties>
 
@@ -55,7 +57,7 @@
 			<groupId>com.github.dreamhead</groupId>
 			<artifactId>moco-core</artifactId>
 			<version>0.9.1</version>
-            <scope>compile</scope>
+			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.scala-lang</groupId>
@@ -67,13 +69,28 @@
 			<artifactId>scala-actors</artifactId>
 			<version>${scala.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.scoverage</groupId>
+			<artifactId>scalac-scoverage-plugin_${scala.tools.version}</artifactId>
+			<version>${scoverage-plugin.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.scoverage</groupId>
+			<artifactId>maven-scoverage-plugin</artifactId>
+			<version>${maven.plugin.scoverage.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
 		<sourceDirectory>src/main/scala</sourceDirectory>
 		<testSourceDirectory>src/test/scala</testSourceDirectory>
-		<resources><resource><directory>src/main/resources</directory></resource></resources>
-		
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+		</resources>
+
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -105,29 +122,58 @@
 				<version>3.1.6</version>
 				<executions>
 					<execution>
+						<id>compile</id>
 						<goals>
+							<goal>add-source</goal>
 							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<jvmArgs>
+								<jvmArg>-Xms64m</jvmArg>
+								<jvmArg>-Xmx1024m</jvmArg>
+							</jvmArgs>
+							<compilerPlugins>
+								<compilerPlugin>
+									<groupId>org.scoverage</groupId>
+									<artifactId>scalac-scoverage-plugin_${scala.tools.version}</artifactId>
+									<version>${scoverage-plugin.version}</version>
+								</compilerPlugin>
+							</compilerPlugins>
+							<args>
+								<arg>-g:vars</arg>
+								<arg>-Yrangepos</arg>
+								<arg>-P:scoverage:dataDir:${project.build.directory}</arg>
+								<arg>-dependencyfile</arg>
+								<arg>${project.build.directory}/.scala_dependencies</arg>
+								<arg>-feature</arg>
+								<arg>-deprecation</arg>
+							</args>
+						</configuration>
+					</execution>
+					<execution>
+						<id>test</id>
+						<goals>
+							<goal>add-source</goal>
 							<goal>testCompile</goal>
 						</goals>
-
 					</execution>
 				</executions>
 			</plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.17</version>
-                <configuration>
-                    <useFile>false</useFile>
-                    <disableXmlReport>true</disableXmlReport>
-                    <!-- If you have classpath issue like NoDefClassError,... -->
-                    <!-- useManifestOnlyJar>false</useManifestOnlyJar -->
-                    <includes>
-                        <include>**/*Test.*</include>
-                        <include>**/*Suite.*</include>
-                    </includes>
-                </configuration>
-            </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.17</version>
+				<configuration>
+					<useFile>false</useFile>
+					<disableXmlReport>true</disableXmlReport>
+					<!-- If you have classpath issue like NoDefClassError,... -->
+					<!-- useManifestOnlyJar>false</useManifestOnlyJar -->
+					<includes>
+						<include>**/*Test.*</include>
+						<include>**/*Suite.*</include>
+					</includes>
+				</configuration>
+			</plugin>
 
 			<plugin>
 				<groupId>org.scalatest</groupId>
@@ -144,6 +190,21 @@
 						<id>test</id>
 						<goals>
 							<goal>test</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.scoverage</groupId>
+				<artifactId>maven-scoverage-plugin</artifactId>
+				<version>${maven.plugin.scoverage.version}</version>
+				<executions>
+					<execution>
+						<id>scales-report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
 						</goals>
 					</execution>
 				</executions>
