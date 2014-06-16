@@ -20,7 +20,7 @@ object RestServerTestDsl {
         def own(resource: RestResource) = (serv, resource)
         def and(resource: RestResource) = (serv, resource)
         def run = serv.startup
-        def end = Unit
+        def end = serv
     }
 
     class ResourceHelper(wsr: WithServerResource) {
@@ -44,15 +44,9 @@ object RestServerTestDsl {
     implicit def Tuple2Server[A <: RestRequest, B <: RestResponse](t: (Server, RestResource, RestOperation, A, Request2Response[A, B])): ServerHelper = {
         t match {
             case ((server, resource, operation, request, req2resp)) => {
-
                 val response = req2resp(request)
-
                 server.configMock(resource, operation, request, response)
-
-                //println("\t*" + server.name + " own " + resource.path + "(" + resource.style + ")" + " when " + operation() + " given " + request + " then " + response)
-
             }
-
         }
 
         new ServerHelper(t._1)

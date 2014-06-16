@@ -1,11 +1,11 @@
 package org.duffqiu.rest.common
 
 abstract class RestResult(name: String, startCode: Int, endCode: Int) {
-	def shouldMatch(statusCode: Int) = {
-		statusCode >= startCode && statusCode <= endCode
-	}
+    def shouldMatch(statusCode: Int) = {
+        statusCode >= startCode && statusCode <= endCode
+    }
 
-	def apply() = name + "(" + startCode + "~" + endCode + ")"
+    def apply() = name + "(" + startCode + "~" + endCode + ")"
 }
 
 case object SUCCESS extends RestResult("Success", 200, 299)

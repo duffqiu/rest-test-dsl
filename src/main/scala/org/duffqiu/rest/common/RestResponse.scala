@@ -1,23 +1,27 @@
 package org.duffqiu.rest.common
 
-import org.duffqiu.rest.common.RestUtility._
+import org.duffqiu.rest.common.RestUtility.asJson
 
-case class RestResponse(statusCode: Int = 200, headerPara: RestParameters = RestParameters("Header"), body: AnyRef = EmptyBody) {
-    val bodyJson: String = body match {
-        case s: String => s
-        case _ => asJson(body)
-    }
+object RestResponse {
+	private final val DEFAULT_STATUS_CODE = 200
+}
 
-    //get header parameter's value
-    def >:>(key: String) = headerPara(key)
+case class RestResponse(statusCode: Int = RestResponse.DEFAULT_STATUS_CODE, headerPara: RestParameters = RestParameters("Header"), body: AnyRef = EmptyBody) {
+	val bodyJson: String = body match {
+		case s: String => s
+		case _ => asJson(body)
+	}
 
-    //append header parameter value
-    def <:<(t: (String, String)) = new RestResponse(statusCode, headerPara + (t._1 -> t._2), body)
+	//get header parameter's value
+	def >:>(key: String) = headerPara(key)
 
-    //append body
-    def <<<(newBody: AnyRef) = new RestResponse(statusCode, headerPara, newBody)
+	//append header parameter value
+	def <:<(req: String, resp: String) = new RestResponse(statusCode, headerPara + (req -> resp), body)
 
-    //apend header map
-    def <:<(map: Map[String, String]) = new RestResponse(statusCode, headerPara ++ map, body)
+	//append body
+	def <<<(newBody: AnyRef) = new RestResponse(statusCode, headerPara, newBody)
+
+	//apend header map
+	def <:<(map: Map[String, String]) = new RestResponse(statusCode, headerPara ++ map, body)
 
 }

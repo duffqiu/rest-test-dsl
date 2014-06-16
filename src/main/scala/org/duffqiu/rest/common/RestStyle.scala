@@ -1,6 +1,6 @@
 package org.duffqiu.rest.common
 
-abstract class RestStyle(style : String)
+abstract class RestStyle(style: String)
 
 case object REST_STYLE extends RestStyle("REST")
 

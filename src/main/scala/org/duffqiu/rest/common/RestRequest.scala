@@ -1,6 +1,6 @@
 package org.duffqiu.rest.common
 
-import org.duffqiu.rest.common.RestUtility._
+import org.duffqiu.rest.common.RestUtility.asJson
 
 case class RestRequest(headerPara: RestParameters = RestParameters("Header"), pathPara: RestParameters = RestParameters("Path"),
                        queryPara: RestParameters = RestParameters("Query"), body: RestBody = EmptyBody) {
