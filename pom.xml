@@ -5,7 +5,7 @@
 	<artifactId>rest.test.dsl</artifactId>
 	<version>0.0.1</version>
 	<name>${project.artifactId}</name>
-	<description>Ericsson SEP Rest Resource DSL</description>
+	<description>Rest Resource DSL</description>
 	<inceptionYear>2014</inceptionYear>
 
 	<properties>
