@@ -49,8 +49,7 @@ import org.scalatest.prop.GeneratorDrivenPropertyChecks
 
 import net.liftweb.json.DefaultFormats
 import net.liftweb.json.parse
-            
-            
+
 case class VIMSI_VowifiService(serviceName: String = "vowifi", subscriptionStatus: String = "activated")
 case class IMSI_RequestBody(vimsi: String = "+12121", msisdn: String = "+86233232", imsi: String = "+234234232432", service: VIMSI_VowifiService = VIMSI_VowifiService()) extends RestBody
 
@@ -114,7 +113,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
             When("Prepare server resource and startup")
 
             aServer own resource when CREATE given request then {
-                req: RestRequest => response
+                _ => response
             } and resource when QUERY given requestDouble then {
                 req: RestRequest => response
             } and resource when DELETE given request then {
@@ -250,7 +249,6 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
             } yield ("Request" <</ ("{vimsi}", tel + vimsi) <:< ("Content-Type", "application/json") <:< ("location", "us") <<< IMSI_RequestBody(imsi = imsi, service = VIMSI_VowifiService(subscriptionStatus = subscriptionStatus, serviceName = serviceName)) <<? ("subscriptionstatus", subscriptionStatus))
 
             When("Prepare server resource and startup")
-
 
             val req_resp: scala.collection.mutable.Map[RestRequest, RestResponse] = new java.util.concurrent.ConcurrentHashMap[RestRequest, RestResponse]
 
