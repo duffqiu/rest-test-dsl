@@ -38,6 +38,7 @@ import org.duffqiu.rest.test.dsl.RestServerTestDsl.string2RestServerHelper
 import org.duffqiu.rest.test.dsl.RestServerTestDsl.withServerOperation
 import org.duffqiu.rest.test.dsl.RestServerTestDsl.withServerRequest
 import org.duffqiu.rest.test.dsl.RestServerTestDsl.withServerResource
+import org.duffqiu.rest.test.dsl.RestServerTestDsl.responseToRequest2Response
 import org.scalacheck.Gen
 import org.scalatest.BeforeAndAfter
 import org.scalatest.Finders
@@ -112,13 +113,9 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             When("Prepare server resource and startup")
 
-            aServer own resource when CREATE given request then {
-                _ => response
-            } and resource when QUERY given requestDouble then {
-                req: RestRequest => response
-            } and resource when DELETE given request then {
-                req: RestRequest => response
-            } run
+            (aServer own resource when CREATE given request then response
+                and resource when QUERY given requestDouble then response
+                and resource when DELETE given request then response run)
 
             Then("Client call server, the response status shall be SUCCESS")
 
