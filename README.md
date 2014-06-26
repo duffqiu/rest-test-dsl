@@ -1,5 +1,6 @@
 rest-test-dsl
 =============
+[![Build Status](https://travis-ci.org/duffqiu/rest-test-dsl.svg?branch=develop)](https://travis-ci.org/duffqiu/rest-test-dsl)
 
 - it is a test DSL for restful client and server based on moco and dispatch. (since scala2.10.4)
 
