@@ -3,9 +3,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>rest.test.dsl</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2</version>
 	<name>${project.artifactId}</name>
-	<description>Ericsson SEP Rest Resource DSL</description>
+	<description>Rest Resource DSL</description>
 	<inceptionYear>2014</inceptionYear>
 
 	<properties>
@@ -178,7 +178,7 @@
 			<plugin>
 				<groupId>org.scalatest</groupId>
 				<artifactId>scalatest-maven-plugin</artifactId>
-				<version>1.0-RC2</version>
+				<version>1.0</version>
 				<configuration>
 					<reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
 					<junitxml>.</junitxml>

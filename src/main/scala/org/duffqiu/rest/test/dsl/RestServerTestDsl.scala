@@ -40,8 +40,8 @@ object RestServerTestDsl {
     implicit def withServerResource(wsr: WithServerResource) = new ResourceHelper(wsr)
     implicit def withServerOperation(wsro: WithServerResourceOperation) = new OperationHelper(wsro)
     implicit def withServerRequest[A <: RestRequest](wsror: WithServerResourceOperationRequest[A]) = new RequestHelper(wsror)
-
-    implicit def Tuple2Server[A <: RestRequest, B <: RestResponse](t: (Server, RestResource, RestOperation, A, Request2Response[A, B])): ServerHelper = {
+    implicit def responseToRequest2Response(resp: RestResponse) = ((request: RestRequest) => resp)
+    implicit def tuple2Server[A <: RestRequest, B <: RestResponse](t: (Server, RestResource, RestOperation, A, Request2Response[A, B])): ServerHelper = {
         t match {
             case ((server, resource, operation, request, req2resp)) => {
                 val response = req2resp(request)
