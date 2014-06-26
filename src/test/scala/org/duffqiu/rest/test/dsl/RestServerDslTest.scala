@@ -355,7 +355,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
             val masterActor = new RestClientMasterActor()
             masterActor.start
 
-            (1 to 20) foreach {
+            (1 to 5) foreach {
                 i =>
                     val worker = new RestClientWorkActor("Client" + i, masterActor, restServ, LOCAL_HOST, restServ.serverPort, {
                         case (server, resource1, req, QUERY, resp, resultResponse) =>
