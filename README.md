@@ -14,3 +14,13 @@ rest-test-dsl
 - there are some samples in the unit test folder    
 
 
+*** Release Notes ***
+
+##0.0.2
+    
+   * Remove end method from client to make the DSL more plain
+   * fix the client bug to close the http client
+   * add one more implicit to make server DSL more plain without add a method if the response is constructed outside DSL
+
+
+
