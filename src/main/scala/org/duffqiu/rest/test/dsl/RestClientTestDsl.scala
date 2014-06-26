@@ -68,7 +68,9 @@ object RestClientTestDsl extends concurrent.ScalaFutures with RestClientConfig w
 
         val req = client.buildHttpRequest(resource, operation, request)
 
-        whenReady(Http(req > { resp => resp })) {
+        val httpClient = Http()
+
+        whenReady(httpClient(req > { resp => resp })) {
             response =>
                 {
                     val statusCode = response.getStatusCode()
@@ -95,6 +97,8 @@ object RestClientTestDsl extends concurrent.ScalaFutures with RestClientConfig w
                     }
                 }
         }
+
+        httpClient.shutdown
 
         new ClientHelper(client)
     }
