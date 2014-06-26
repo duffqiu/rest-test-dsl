@@ -22,7 +22,6 @@ import org.duffqiu.rest.test.actor.RestClientWorkActor
 import org.duffqiu.rest.test.actor.RestServerActor
 import org.duffqiu.rest.test.actor.RestTestResourceBatchMatchMsg
 import org.duffqiu.rest.test.actor.RestTestTaskBatchMsg
-import org.duffqiu.rest.test.dsl.RestClientTestDsl.Tuple2Client
 import org.duffqiu.rest.test.dsl.RestClientTestDsl.client2ClientHelper
 import org.duffqiu.rest.test.dsl.RestClientTestDsl.string2RestClientHelper
 import org.duffqiu.rest.test.dsl.RestClientTestDsl.withClientOperation
@@ -32,7 +31,7 @@ import org.duffqiu.rest.test.dsl.RestClientTestDsl.withClientResult
 import org.duffqiu.rest.test.dsl.RestCommonImplicits.restStyle2ResourceHelper
 import org.duffqiu.rest.test.dsl.RestCommonImplicits.string2RestRequest
 import org.duffqiu.rest.test.dsl.RestCommonImplicits.string2RestResponse
-import org.duffqiu.rest.test.dsl.RestServerTestDsl.Tuple2Server
+import org.duffqiu.rest.test.dsl.RestServerTestDsl.tuple2Server
 import org.duffqiu.rest.test.dsl.RestServerTestDsl.server2ServerHelper
 import org.duffqiu.rest.test.dsl.RestServerTestDsl.string2RestServerHelper
 import org.duffqiu.rest.test.dsl.RestServerTestDsl.withServerOperation
@@ -134,7 +133,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
                         assert(msisdn === "+86233232")
                     }
-            } end
+            }
 
             ses ask_for resource to QUERY by request should SUCCESS and_with {
                 resp: RestResponse =>
@@ -153,7 +152,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
                         assert(serviceName === "vowifi")
                         imsiBody.imsi shouldBe "+234234232432"
                     }
-            } end
+            }
 
         }
 
@@ -162,7 +161,8 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             val resource = REST_STYLE / "/vimsi/{vimsi}"
 
-            val request = "Request" <</ ("{vimsi}", "+2323232") <:< ("Content-Type", "application/json") <:< ("location", "us") <<< IMSI_RequestBody() <<? ("imsi", "+23232") <<? ("subscriptionstatus", "activated")
+            val request = ("Request" <</ ("{vimsi}", "+2323232") <:< ("Content-Type", "application/json") <:< ("location", "us")
+                <<< IMSI_RequestBody() <<? ("imsi", "+23232") <<? ("subscriptionstatus", "activated"))
 
             val response = ("Response", 200) <<< IMSI_RequestBody()
 
@@ -192,7 +192,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
                         assert(msisdn === "+86233232")
                     }
-            } end
+            }
 
         }
 
@@ -227,7 +227,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
                         aServer shouldHitAtLeast (resource, CREATE, request, 1)
                         aServer shouldHitAtMost (resource, CREATE, request, 1)
                     }
-            } end
+            }
 
         }
 
@@ -278,7 +278,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
                                 resp.statusCode shouldBe 200
                                 resp.body shouldEqual t._2.bodyJson
                             }
-                    } end
+                    }
 
             }
 

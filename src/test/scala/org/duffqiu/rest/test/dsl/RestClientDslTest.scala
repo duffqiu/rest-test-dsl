@@ -28,7 +28,7 @@ class RestClientDslTest extends FunSpec with Matchers with BeforeAndAfter with G
         it("Should support DSL") {
             val ses = "SES_Client" -> LOCAL_HOST on 38080
             ses ask_for (RestResource()) to CREATE by (RestRequest()) should SUCCESS and_with {
-                response: RestResponse => Unit
+                response: RestResponse => println("finish client call")
             }
         }
 

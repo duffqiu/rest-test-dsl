@@ -36,7 +36,7 @@ object RestClientTestDsl extends concurrent.ScalaFutures with RestClientConfig w
 
         def ask_for(resource: RestResource) = (client, resource)
 
-        def end = Unit
+        //        def end = Unit
     }
 
     class ClientResourceHelper(wcr: WithClientResource) {
@@ -51,52 +51,51 @@ object RestClientTestDsl extends concurrent.ScalaFutures with RestClientConfig w
         def should(result: RestResult) = (wcror._1, wcror._2, wcror._3, wcror._4, result)
     }
 
-    class ClientResultHelper[A](wcrorr: WithClientResourceOperationRequestResult[A]) {
-        def and_with(fun: Response4Test) = (wcrorr._1, wcrorr._2, wcrorr._3, wcrorr._4, wcrorr._5, fun)
+    class ClientResultHelper[A <: RestRequest](wcrorr: WithClientResourceOperationRequestResult[A]) {
+        def and_with(fun: Response4Test) = tuple2Client(wcrorr._1, wcrorr._2, wcrorr._3, wcrorr._4, wcrorr._5, fun)
     }
 
     implicit def string2RestClientHelper(name: String) = new RestClient(name)
     implicit def client2ClientHelper(client: Client) = new ClientHelper(client)
     implicit def withClientResource(wcr: WithClientResource) = new ClientResourceHelper(wcr)
     implicit def withClientOperation(wcro: WithClientResourceOperation) = new ClientOperationHelper(wcro)
-    implicit def withClientRequest[A <: RestRequest](wcror: WithClientResourceOperationRequest[A]) = new ClientRequestHelper[A](wcror)
+    implicit def withClientRequest[A](wcror: WithClientResourceOperationRequest[A]) = new ClientRequestHelper[A](wcror)
+
     implicit def withClientResult[A <: RestRequest, B <: RestResponse](wcrorr: WithClientResourceOperationRequestResult[A]) = new ClientResultHelper[A](wcrorr)
 
-    implicit def Tuple2Client[A <: RestRequest](t: (Client, RestResource, RestOperation, A, RestResult, Response4Test)): ClientHelper = {
-        t match {
-            case ((client, resource, operation, request, result, resp2test)) => {
+    def tuple2Client[A <: RestRequest](client: Client, resource: RestResource, operation: RestOperation, request: A,
+                                       result: RestResult, resp4test: Response4Test): ClientHelper = {
 
-                val req = client.buildHttpRequest(resource, operation, request)
+        val req = client.buildHttpRequest(resource, operation, request)
 
-                whenReady(Http(req > { response => response })) {
-                    response =>
-                        {
-                            val statusCode = response.getStatusCode()
-                            val body = response.getResponseBody()
-                            val httpHeaders = mapAsScalaMap(response.getHeaders())
+        whenReady(Http(req > { resp => resp })) {
+            response =>
+                {
+                    val statusCode = response.getStatusCode()
+                    val body = response.getResponseBody()
+                    val httpHeaders = mapAsScalaMap(response.getHeaders()) toMap
 
-                            val headerPara = httpHeaders map {
-                                case (key, value) => {
-                                    val valueList = iterableAsScalaIterable(value)
-                                    //limitation, moco can't support a key with a list value in http header, but dispatch support.
-                                    (key, valueList.head)
-                                }
-                            }
-
-                            result.shouldMatch(statusCode) match {
-                                case true => {
-                                    val restResponse = ("RestResponse", statusCode) <:< (headerPara toMap) <<< body
-                                    resp2test(restResponse)
-                                }
-                                case _ => fail("Expect result is not matched. Expect: " + result() + ", but get: "
-                                    + statusCode + ", body is " + Option(body).filter(_.trim().nonEmpty).getOrElse("Empty"))
-                            }
+                    val headerPara = httpHeaders map {
+                        case (key, value) => {
+                            val valueList = iterableAsScalaIterable(value)
+                            //limitation, moco can't support a key with a list value in http header, but dispatch support.
+                            (key, valueList.head)
                         }
+                    }
+
+                    result.shouldMatch(statusCode) match {
+                        case true => {
+                            val restResponse = ("RestResponse", statusCode) <:< headerPara <<< body
+                            resp4test(restResponse)
+                        }
+
+                        case _ => fail("Expect result is not matched. Expect: " + result() + ", but get: " + statusCode +
+                            ", body is " + Option(body).getOrElse("Empty"))
+
+                    }
                 }
-            }
         }
 
-        new ClientHelper(t._1)
+        new ClientHelper(client)
     }
-
 }

@@ -14,7 +14,6 @@ import org.duffqiu.rest.common.RestRequest
 import org.duffqiu.rest.common.RestResource
 import org.duffqiu.rest.common.RestResponse
 import org.duffqiu.rest.common.RestServer
-import org.duffqiu.rest.test.dsl.RestClientTestDsl.Tuple2Client
 import org.duffqiu.rest.test.dsl.RestClientTestDsl.client2ClientHelper
 import org.duffqiu.rest.test.dsl.RestClientTestDsl.string2RestClientHelper
 import org.duffqiu.rest.test.dsl.RestClientTestDsl.withClientOperation
@@ -55,7 +54,7 @@ case class RestClientWorkActor(val name: String, master: RestClientMasterActor, 
                                 testFun(server, resource, req, operation, resp, resultResp)
                             //								println("[" + name + "]send message by client worker, expect: " + expectResult)
 
-                        } end
+                        }
                     } catch {
 
                         case e: Exception =>
