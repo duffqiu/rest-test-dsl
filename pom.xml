@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
     <groupId>com.github.duffqiu</groupId>
-	<artifactId>rest-test-dsl_${scala.tools.version}</artifactId>
+	<artifactId>rest-test-dsl_2.10</artifactId>
 	<version>0.0.3</version>
 	<name>${project.artifactId}</name>
 	<description>Rest Test DSL</description>
@@ -39,7 +39,7 @@
 		<dependency>
 			<groupId>org.scalatest</groupId>
 			<artifactId>scalatest_${scala.tools.version}</artifactId>
-			<version>2.2.0</version>
+			<version>2.2.0-RC1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.scalacheck</groupId>
@@ -71,16 +71,14 @@
 		</dependency>
 		<dependency>
 			<groupId>org.scoverage</groupId>
-			<artifactId>scalac-scoverage-plugin_${scala.tools.version}</artifactId>
+			<artifactId>scalac-scoverage-plugin_2.10</artifactId>
 			<version>${scoverage-plugin.version}</version>
-			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.scoverage</groupId>
 			<artifactId>maven-scoverage-plugin</artifactId>
 			<version>${maven.plugin.scoverage.version}</version>
-			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
@@ -134,19 +132,19 @@
 								<jvmArg>-Xms64m</jvmArg>
 								<jvmArg>-Xmx1024m</jvmArg>
 							</jvmArgs>
-<!-- 							<compilerPlugins>
+ 							<compilerPlugins>
 								<compilerPlugin>
 									<groupId>org.scoverage</groupId>
-									<artifactId>scalac-scoverage-plugin_${scala.tools.version}</artifactId>
+									<artifactId>scalac-scoverage-plugin_2.10</artifactId>
 									<version>${scoverage-plugin.version}</version>
 								</compilerPlugin>
-							</compilerPlugins> -->
+							</compilerPlugins> 
 							<args>
-<!-- 								<arg>-g:vars</arg>
+ 								<arg>-g:vars</arg>
 								<arg>-Yrangepos</arg>
-								<arg>-P:scoverage:dataDir:${project.build.directory}</arg> -->
-								<arg>-dependencyfile</arg>
-								<arg>${project.build.directory}/.scala_dependencies</arg>
+								<arg>-P:scoverage:dataDir:${project.build.directory}</arg> 
+ 								<arg>-dependencyfile</arg>
+								<arg>${project.build.directory}/.scala_dependencies</arg> 
 								<arg>-feature</arg>
 								<arg>-deprecation</arg>
 							</args>
@@ -180,7 +178,7 @@
 			<plugin>
 				<groupId>org.scalatest</groupId>
 				<artifactId>scalatest-maven-plugin</artifactId>
-				<version>1.0</version>
+				<version>1.0-RC2</version>
 				<configuration>
 					<reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
 					<junitxml>.</junitxml>
@@ -197,7 +195,7 @@
 				</executions>
 			</plugin>
 
-<!-- 			<plugin>
+ 			<plugin>
 				<groupId>org.scoverage</groupId>
 				<artifactId>maven-scoverage-plugin</artifactId>
 				<version>${maven.plugin.scoverage.version}</version>
@@ -210,7 +208,7 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin> -->
+			</plugin> 
 		</plugins>
 	</build>
 </project>
