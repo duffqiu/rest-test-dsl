@@ -35,7 +35,7 @@ class RestServer(val name: String = RestServer.DEFAULT_NAME, val port: Int = Res
 
     val mocoRun: Runner = runner(server)
 
-    def startup = {
+    def run = {
         mocoRun.start()
     }
 

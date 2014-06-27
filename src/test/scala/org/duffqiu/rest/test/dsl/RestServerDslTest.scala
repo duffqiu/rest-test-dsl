@@ -31,7 +31,6 @@ import org.duffqiu.rest.test.dsl.RestClientTestDsl.withClientResult
 import org.duffqiu.rest.test.dsl.RestCommonImplicits.restStyle2ResourceHelper
 import org.duffqiu.rest.test.dsl.RestCommonImplicits.string2RestRequest
 import org.duffqiu.rest.test.dsl.RestCommonImplicits.string2RestResponse
-import org.duffqiu.rest.test.dsl.RestServerTestDsl.tuple2Server
 import org.duffqiu.rest.test.dsl.RestServerTestDsl.server2ServerHelper
 import org.duffqiu.rest.test.dsl.RestServerTestDsl.string2RestServerHelper
 import org.duffqiu.rest.test.dsl.RestServerTestDsl.withServerOperation
@@ -262,7 +261,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             req_resp.foldLeft(aServer) {
                 (serv, t: (RestRequest, RestResponse)) =>
-                    serv own resource when DELETE given t._1 then { req => t._2 } end
+                    serv own resource when DELETE given t._1 then t._2
             } run
 
             val ses = "SES_Client" -> LOCAL_HOST on aServer.serverPort
@@ -355,7 +354,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
             val masterActor = new RestClientMasterActor()
             masterActor.start
 
-            (1 to 5) foreach {
+            (1 to 20) foreach {
                 i =>
                     val worker = new RestClientWorkActor("Client" + i, masterActor, restServ, LOCAL_HOST, restServ.serverPort, {
                         case (server, resource1, req, QUERY, resp, resultResponse) =>
@@ -385,10 +384,10 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
             masterActor ! RestTestTaskBatchMsg(resource1, QUERY, req_resp2.toMap, SUCCESS)
 
             masterActor.stop
-            println("!!!master actor exit")
+            //            println("!!!master actor exit")
 
             servActor.stop
-            println("!!!server actor exit")
+            //            println("!!!server actor exit")
 
         }
     }

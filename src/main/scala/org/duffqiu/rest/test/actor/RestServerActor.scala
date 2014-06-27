@@ -9,7 +9,6 @@ import scala.actors.Actor.State.Terminated
 import scala.actors.Exit
 import scala.actors.TIMEOUT
 
-import org.duffqiu.rest.test.dsl.RestServerTestDsl.tuple2Server
 import org.duffqiu.rest.test.dsl.RestServerTestDsl.server2ServerHelper
 import org.duffqiu.rest.test.dsl.RestServerTestDsl.string2RestServerHelper
 import org.duffqiu.rest.test.dsl.RestServerTestDsl.withServerOperation
@@ -48,7 +47,7 @@ class RestServerActor(name: String = RestServerActor.DEFAULT_NAME, port: Int = R
                 }
 
                 case RestTestResourceMatchMsg(resource, req, operation, resp) => {
-                    // println("[Server Actor] config matcher")
+                    //                    println("[Server Actor] config matcher")
 
                     restServ own resource when operation given req then resp
                 }
