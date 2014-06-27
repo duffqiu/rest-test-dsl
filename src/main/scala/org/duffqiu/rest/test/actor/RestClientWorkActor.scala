@@ -60,8 +60,8 @@ case class RestClientWorkActor(val name: String, master: RestClientMasterActor, 
                         case e: Exception =>
                             master ! RestClientExceptionMessage(name, e)
 
-                        case _: Throwable =>
-                            println("[" + name + "]got unknow exception")
+                        case t: Throwable =>
+                            println("[" + name + "]got unknow exception: " + t)
                     }
 
                     //  println("[" + name + "]" + System.currentTimeMillis() + ": end handler " + operation + " in worker")

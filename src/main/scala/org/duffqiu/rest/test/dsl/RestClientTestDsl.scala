@@ -64,7 +64,7 @@ object RestClientTestDsl extends concurrent.ScalaFutures with RestClientConfig w
     implicit def withClientResult[A <: RestRequest, B <: RestResponse](wcrorr: WithClientResourceOperationRequestResult[A]) = new ClientResultHelper[A](wcrorr)
 
     def tuple2Client[A <: RestRequest](client: Client, resource: RestResource, operation: RestOperation, request: A,
-                                       result: RestResult, resp4test: Response4Test): ClientHelper = {
+                                       result: RestResult, resp4test: Response4Test): Unit = {
 
         val req = client.buildHttpRequest(resource, operation, request)
 
@@ -99,7 +99,5 @@ object RestClientTestDsl extends concurrent.ScalaFutures with RestClientConfig w
         }
 
         httpClient.shutdown
-
-        new ClientHelper(client)
     }
 }

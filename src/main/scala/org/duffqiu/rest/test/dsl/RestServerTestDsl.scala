@@ -19,8 +19,6 @@ object RestServerTestDsl {
     class ServerHelper(serv: Server) {
         def own(resource: RestResource) = (serv, resource)
         def and(resource: RestResource) = (serv, resource)
-        def run = serv.startup
-        def end = serv
     }
 
     class ResourceHelper(wsr: WithServerResource) {
@@ -31,8 +29,13 @@ object RestServerTestDsl {
         def given[A](request: A) = (wsro._1, wsro._2, wsro._3, request)
     }
 
-    class RequestHelper[A](wsror: WithServerResourceOperationRequest[A]) {
-        def then[B](fun: Request2Response[A, B]) = (wsror._1, wsror._2, wsror._3, wsror._4, fun)
+    class RequestHelper[A <: RestRequest](wsror: WithServerResourceOperationRequest[A]) {
+        def then[B <: RestResponse](fun: Request2Response[A, B]) = {
+            val response = fun(wsror._4)
+            val server = wsror._1
+            server.configMock(wsror._2, wsror._3, wsror._4, response)
+            server
+        }
     }
 
     implicit def string2RestServerHelper(name: String) = new RestServer(name)
@@ -41,15 +44,5 @@ object RestServerTestDsl {
     implicit def withServerOperation(wsro: WithServerResourceOperation) = new OperationHelper(wsro)
     implicit def withServerRequest[A <: RestRequest](wsror: WithServerResourceOperationRequest[A]) = new RequestHelper(wsror)
     implicit def responseToRequest2Response(resp: RestResponse) = ((request: RestRequest) => resp)
-    implicit def tuple2Server[A <: RestRequest, B <: RestResponse](t: (Server, RestResource, RestOperation, A, Request2Response[A, B])): ServerHelper = {
-        t match {
-            case ((server, resource, operation, request, req2resp)) => {
-                val response = req2resp(request)
-                server.configMock(resource, operation, request, response)
-            }
-        }
-
-        new ServerHelper(t._1)
-    }
 
 }
