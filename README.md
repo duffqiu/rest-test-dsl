@@ -23,5 +23,9 @@ rest-test-dsl
    * fix the client bug to close the http client
    * add one more implicit to make server DSL more plain without add a method if the response is constructed outside DSL
 
+##0.0.3
+   * upgrade scalatest version to 2.2.0
+   * make server dsl code simply
+   * fix bugs 
 
 
