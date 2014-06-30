@@ -12,12 +12,12 @@ object RestClient {
     private[common] final val DEFAULT_PORT = 8080
 }
 
-class RestClient(val name: String = RestClient.DEFAULT_NAME, val hostName: RestHost = LOCAL_HOST, val port: Int = RestClient.DEFAULT_PORT) {
+class RestClient(val name: String = RestClient.DEFAULT_NAME, val hostName: RestHost = LOCAL_HOST, val port: Int = RestClient.DEFAULT_PORT,
+                 client: Http = Http()) {
     val host = :/(hostName.name, port)
-    val client = new Http()
 
     def ->(hostName: RestHost) = {
-        new RestClient(name, hostName, port)
+        new RestClient(name, hostName, port, client)
     }
 
     def buildHttpRequest(resource: RestResource, operation: RestOperation, request: RestRequest) = {
@@ -50,6 +50,8 @@ class RestClient(val name: String = RestClient.DEFAULT_NAME, val hostName: RestH
     }
 
     def apply(): Http = client
+
+    def stop: Unit = client.shutdown
 
 }
 
