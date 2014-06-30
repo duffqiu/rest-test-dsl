@@ -15,6 +15,7 @@ import org.duffqiu.rest.common.RestClientConfig
 import org.duffqiu.rest.common.RestRequest
 import org.duffqiu.rest.common.RestResponse
 import org.duffqiu.rest.common.RestServer
+import org.duffqiu.rest.common.RestClient
 import org.duffqiu.rest.common.SUCCESS
 import org.duffqiu.rest.test.actor.RUN_REST_SERVER
 import org.duffqiu.rest.test.actor.RestClientMasterActor
@@ -49,23 +50,30 @@ import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import net.liftweb.json.DefaultFormats
 import net.liftweb.json.parse
 
-case class VIMSI_VowifiService(serviceName: String = "vowifi", subscriptionStatus: String = "activated")
-case class IMSI_RequestBody(vimsi: String = "+12121", msisdn: String = "+86233232", imsi: String = "+234234232432", service: VIMSI_VowifiService = VIMSI_VowifiService()) extends RestBody
+case class VService(serviceName: String = "name1", subscriptionStatus: String = "ok")
+case class IMSI_RequestBody(vimsi: String = "+12121", msisdn: String = "+86233232", imsi: String = "+234234232432",
+                            service: VService = VService()) extends RestBody
 
-class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with GivenWhenThen with concurrent.ScalaFutures with RestClientConfig with GeneratorDrivenPropertyChecks {
+class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter
+    with GivenWhenThen with concurrent.ScalaFutures with RestClientConfig
+    with GeneratorDrivenPropertyChecks {
 
     var aServer: RestServer = _
     var request4Check: RestRequest = _
+    var aClient: RestClient = _
+
+    val TEST_PORT = 8181
 
     describe("Rest server and client DSL Testing") {
 
         before {
-            aServer = "Server" on 0
+            aServer = "Server" on TEST_PORT
+            aClient = "Client" -> LOCAL_HOST on TEST_PORT
 
         }
 
         after {
-            Thread.sleep(2000)
+            aClient.stop
             aServer.stop
         }
 
@@ -78,7 +86,6 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             vIMSI.name shouldBe "vIMSI_Manager"
 
-            Thread.sleep(2000)
             vIMSI.stop
 
         }
@@ -92,7 +99,6 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             vIMSI.name shouldBe "vIMSI_Manager"
 
-            Thread.sleep(2000)
             vIMSI.stop
 
         }
@@ -103,7 +109,8 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             val resource = REST_STYLE / "/vIMSI"
 
-            val request = "Request" <:< ("Content-Type", "application/json") <<? ("IMSI", "+23232") <<? ("subscriptionStatus", "activated") <</ ("{vIMSI}", "2323232")
+            val request = "Request" <:< ("Content-Type", "application/json") <<? ("IMSI", "+23232") <<? ("subscriptionStatus", "activated") <</
+                ("{vIMSI}", "2323232")
 
             val requestDouble = RestRequest() <:< ("Content-Type", "application/json")
 
@@ -117,9 +124,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             Then("Client call server, the response status shall be SUCCESS")
 
-            val ses = "SES_Client" -> LOCAL_HOST on aServer.serverPort
-
-            ses ask_for resource to QUERY by request should SUCCESS and_with {
+            aClient ask_for resource to QUERY by request should SUCCESS and_with {
                 resp: RestResponse =>
                     {
                         resp.statusCode shouldBe 200
@@ -134,7 +139,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
                     }
             }
 
-            ses ask_for resource to QUERY by request should SUCCESS and_with {
+            aClient ask_for resource to QUERY by request should SUCCESS and_with {
                 resp: RestResponse =>
                     {
                         resp.statusCode shouldBe 200
@@ -148,7 +153,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
                         val imsiBody = jsValue.extract[IMSI_RequestBody]
                         assert(imsi === "+234234232432")
-                        assert(serviceName === "vowifi")
+                        assert(serviceName === "name1")
                         imsiBody.imsi shouldBe "+234234232432"
                     }
             }
@@ -167,18 +172,11 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             When("Prepare server resource and startup")
 
-            aServer own resource when CREATE given request then {
-                req: RestRequest =>
-                    {
-                        response
-                    }
-            } run
+            aServer own resource when CREATE given request then response run
 
             Then("Client call server, the response status shall be SUCCESS")
 
-            val ses = "SES_Client" -> LOCAL_HOST on aServer.serverPort
-
-            ses ask_for resource to CREATE by request should SUCCESS and_with {
+            aClient ask_for resource to CREATE by request should SUCCESS and_with {
                 resp: RestResponse =>
                     {
                         resp.statusCode shouldBe 200
@@ -200,24 +198,18 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             val resource = RPC_STYLE / "/vimsi/{vimsi}/delete"
 
-            val request = "Request" <</ ("{vimsi}", "+2323232") <:< ("Content-Type", "application/json") <:< ("location", "us") <<< IMSI_RequestBody() <<? ("imsi", "+23232") <<? ("subscriptionstatus", "activated")
+            val request = "Request" <</ ("{vimsi}", "+2323232") <:< ("Content-Type", "application/json") <:< ("location", "us") <<<
+                IMSI_RequestBody() <<? ("imsi", "+23232") <<? ("subscriptionstatus", "activated")
 
             val response = ("Response", 200) <:< ("Content-Type", "application/json") <:< ("location", "us")
 
             When("Prepare server resource and startup")
 
-            aServer own resource when DELETE given request then {
-                req: RestRequest =>
-                    {
-                        response
-                    }
-            } run
+            aServer own resource when DELETE given request then response run
 
             Then("Client call server, the response status shall be SUCCESS")
 
-            val ses = "SES_Client" -> LOCAL_HOST on aServer.serverPort
-
-            ses ask_for resource to DELETE by request should SUCCESS and_with {
+            aClient ask_for resource to DELETE by request should SUCCESS and_with {
                 resp: RestResponse =>
                     {
                         resp.statusCode shouldBe 200
@@ -238,11 +230,13 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
             val reqs = for {
                 tel <- Gen.oneOf("tel:", "+")
                 vimsiRamdom <- Gen.numStr
-                vimsi <- Gen.value(Option(vimsiRamdom) match { case Some(x) if (x.length() > 10 && x.length() < 20) => x; case _ => "89900" })
+                vimsi <- Gen.const(Option(vimsiRamdom) match { case Some(x) if (x.length() > 10 && x.length() < 20) => x; case _ => "89900" })
                 imsi <- Gen.numStr
                 serviceName <- Gen.oneOf("vowifi", "mca", "vvm")
                 subscriptionStatus <- Gen.oneOf("activated", "deactivated")
-            } yield ("Request" <</ ("{vimsi}", tel + vimsi) <:< ("Content-Type", "application/json") <:< ("location", "us") <<< IMSI_RequestBody(imsi = imsi, service = VIMSI_VowifiService(subscriptionStatus = subscriptionStatus, serviceName = serviceName)) <<? ("subscriptionstatus", subscriptionStatus))
+            } yield ("Request" <</ ("{vimsi}", tel + vimsi) <:< ("Content-Type", "application/json") <:< ("location", "us") <<<
+                IMSI_RequestBody(imsi = imsi, service = VService(subscriptionStatus = subscriptionStatus, serviceName = serviceName)) <<?
+                ("subscriptionstatus", subscriptionStatus))
 
             When("Prepare server resource and startup")
 
@@ -254,7 +248,9 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
                         val body = req.body match {
                             case b: IMSI_RequestBody => b
                         }
-                        val resp = ("Response", 200) <:< ("Content-Type", req >:> ("Content-Type")) <:< ("location", req >:> ("location")) <<< IMSI_RequestBody(vimsi = req.>>/("{vimsi}"), imsi = body.imsi, service = VIMSI_VowifiService(subscriptionStatus = req >>? ("subscriptionstatus"), serviceName = body.service.serviceName))
+                        val resp = ("Response", 200) <:< ("Content-Type", req >:> ("Content-Type")) <:< ("location", req >:> ("location")) <<<
+                            IMSI_RequestBody(vimsi = req.>>/("{vimsi}"), imsi = body.imsi, service = VService(subscriptionStatus = req >>?
+                                ("subscriptionstatus"), serviceName = body.service.serviceName))
                         req_resp.put(req, resp)
                     }
             }
@@ -264,14 +260,12 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
                     serv own resource when DELETE given t._1 then t._2
             } run
 
-            val ses = "SES_Client" -> LOCAL_HOST on aServer.serverPort
-
             Then("Client call server, the response status shall be SUCCESS with response")
 
             //can'tuse par when need to use hit methods
             req_resp.par.foreach {
                 t =>
-                    ses ask_for resource to DELETE by t._1 should SUCCESS and_with {
+                    aClient ask_for resource to DELETE by t._1 should SUCCESS and_with {
                         resp: RestResponse =>
                             {
                                 resp.statusCode shouldBe 200
@@ -294,9 +288,11 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
                 vimsiRamdom <- Gen.numStr
                 vimsi <- Gen.const(Option(vimsiRamdom) match { case Some(x) if (x.length() > 10 && x.length() < 20) => x; case _ => "89900" })
                 imsi <- Gen.numStr
-                serviceName <- Gen.oneOf("vowifi", "mca", "vvm")
+                serviceName <- Gen.oneOf("wifi", "sms", "mms")
                 subscriptionStatus <- Gen.oneOf("activated", "deactivated")
-            } yield ("Request" <</ ("{vimsi}", tel + vimsi) <:< ("Content-Type", "application/json") <:< ("location", "us") <<< IMSI_RequestBody(imsi = imsi, service = VIMSI_VowifiService(subscriptionStatus = subscriptionStatus, serviceName = serviceName)) <<? ("subscriptionstatus", subscriptionStatus))
+            } yield ("Request" <</ ("{vimsi}", tel + vimsi) <:< ("Content-Type", "application/json") <:< ("location", "us") <<<
+                IMSI_RequestBody(imsi = imsi, service = VService(subscriptionStatus = subscriptionStatus,
+                    serviceName = serviceName)) <<? ("subscriptionstatus", subscriptionStatus))
 
             val req_resp: scala.collection.mutable.Map[RestRequest, RestResponse] = new java.util.concurrent.ConcurrentHashMap[RestRequest, RestResponse]
 
@@ -306,7 +302,9 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
                         val body = req.body match {
                             case b: IMSI_RequestBody => b
                         }
-                        val resp = ("Response", 400) <:< ("Content-Type", req >:> ("Content-Type")) <:< ("location", req >:> ("location")) <<< IMSI_RequestBody(vimsi = req.>>/("{vimsi}"), imsi = body.imsi, service = VIMSI_VowifiService(subscriptionStatus = req >>? ("subscriptionstatus"), serviceName = body.service.serviceName))
+                        val resp = ("Response", 400) <:< ("Content-Type", req >:> ("Content-Type")) <:<
+                            ("location", req >:> ("location")) <<< IMSI_RequestBody(vimsi = req.>>/("{vimsi}"), imsi = body.imsi,
+                                service = VService(subscriptionStatus = req >>? ("subscriptionstatus"), serviceName = body.service.serviceName))
                         req_resp.put(req, resp)
                     }
             }
@@ -316,9 +314,11 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
                 vimsiRamdom <- Gen.numStr
                 vimsi <- Gen.const(Option(vimsiRamdom) match { case Some(x) if (x.length() > 10 && x.length() < 20) => x; case _ => "89900" })
                 imsi <- Gen.numStr
-                serviceName <- Gen.oneOf("vowifi", "icloud", "vvm")
+                serviceName <- Gen.oneOf("wifi", "sms", "mms")
                 subscriptionStatus <- Gen.oneOf("activated", "deactivated", "enabled", "disabled")
-            } yield ("Request" <</ ("{vimsi}", tel + vimsi) <:< ("Content-Type", "application/json") <:< ("location", "cn") <<< IMSI_RequestBody(imsi = imsi, service = VIMSI_VowifiService(subscriptionStatus = subscriptionStatus, serviceName = serviceName)) <<? ("subscriptionstatus", subscriptionStatus))
+            } yield ("Request" <</ ("{vimsi}", tel + vimsi) <:< ("Content-Type", "application/json") <:< ("location", "cn") <<<
+                IMSI_RequestBody(imsi = imsi, service = VService(subscriptionStatus = subscriptionStatus,
+                    serviceName = serviceName)) <<? ("subscriptionstatus", subscriptionStatus))
 
             val req_resp2: scala.collection.mutable.Map[RestRequest, RestResponse] = new java.util.concurrent.ConcurrentHashMap[RestRequest, RestResponse]
 
@@ -328,14 +328,16 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
                         val body = req.body match {
                             case b: IMSI_RequestBody => b
                         }
-                        val resp = ("Response", 200) <:< ("Content-Type", req >:> ("Content-Type")) <:< ("location", req >:> ("location")) <<< IMSI_RequestBody(vimsi = req.>>/("{vimsi}"), imsi = body.imsi, service = VIMSI_VowifiService(subscriptionStatus = req >>? ("subscriptionstatus"), serviceName = body.service.serviceName))
+                        val resp = ("Response", 200) <:< ("Content-Type", req >:> ("Content-Type")) <:< ("location", req >:>
+                            ("location")) <<< IMSI_RequestBody(vimsi = req.>>/("{vimsi}"), imsi = body.imsi,
+                                service = VService(subscriptionStatus = req >>? ("subscriptionstatus"), serviceName = body.service.serviceName))
                         req_resp2.put(req, resp)
                     }
             }
 
             When("Prepare server resource and startup")
 
-            val servActor = new RestServerActor("RestServer", 38080)
+            val servActor = new RestServerActor("RestServer", 9999)
 
             servActor.start
 
@@ -356,7 +358,7 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
 
             (1 to 20) foreach {
                 i =>
-                    val worker = new RestClientWorkActor("Client" + i, masterActor, restServ, LOCAL_HOST, restServ.serverPort, {
+                    val worker = new RestClientWorkActor("Client" + i, masterActor, restServ, LOCAL_HOST, 9999, {
                         case (server, resource1, req, QUERY, resp, resultResponse) =>
                             {
                                 resultResponse.statusCode shouldBe 200
@@ -384,11 +386,37 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter with G
             masterActor ! RestTestTaskBatchMsg(resource1, QUERY, req_resp2.toMap, SUCCESS)
 
             masterActor.stop
-            //            println("!!!master actor exit")
 
             servActor.stop
-            //            println("!!!server actor exit")
 
+        }
+
+        it("should be OK when run 100 times with the same client") {
+            Given("request")
+
+            val resource = RPC_STYLE / "/vimsi/{vimsi}/delete"
+
+            val request = "Request" <</ ("{vimsi}", "+2323232") <:< ("Content-Type", "application/json") <:<
+                ("location", "us") <<< IMSI_RequestBody() <<? ("imsi", "+23232") <<? ("subscriptionstatus", "activated")
+
+            val response = ("Response", 200) <:< ("Content-Type", "application/json") <:< ("location", "us")
+
+            When("Prepare server resource and startup")
+
+            aServer own resource when DELETE given request then response run
+
+            Then("Client call server, the response status shall be SUCCESS")
+
+            (1 to 100) foreach {
+
+                i =>
+                    aClient ask_for resource to DELETE by request should SUCCESS and_with {
+                        resp: RestResponse =>
+                            {
+                                resp.statusCode shouldBe 200
+                            }
+                    }
+            }
         }
     }
 

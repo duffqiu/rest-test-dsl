@@ -31,12 +31,10 @@ object RestClientTestDsl extends concurrent.ScalaFutures with RestClientConfig w
 
     class ClientHelper(client: Client) {
         def on(port: Int) = {
-            new RestClient(client.name, client.hostName, port)
+            new RestClient(client.name, client.hostName, port, client())
         }
 
         def ask_for(resource: RestResource) = (client, resource)
-
-        //        def end = Unit
     }
 
     class ClientResourceHelper(wcr: WithClientResource) {
@@ -68,7 +66,7 @@ object RestClientTestDsl extends concurrent.ScalaFutures with RestClientConfig w
 
         val req = client.buildHttpRequest(resource, operation, request)
 
-        val httpClient = Http()
+        val httpClient = client()
 
         whenReady(httpClient(req > { resp => resp })) {
             response =>
@@ -97,7 +95,5 @@ object RestClientTestDsl extends concurrent.ScalaFutures with RestClientConfig w
                     }
                 }
         }
-
-        httpClient.shutdown
     }
 }

@@ -29,7 +29,7 @@ object RestServer {
     private[common] final val DEFAULT_PORT = 8080
 }
 
-class RestServer(val name: String = RestServer.DEFAULT_NAME, val port: Int = RestServer.DEFAULT_PORT) {
+class RestServer(val name: String = RestServer.DEFAULT_NAME, port: Int = RestServer.DEFAULT_PORT) {
     val hit = requestHit() // not used when using log
     val server = port match { case 0 => httpserver(hit); case _ => httpserver(port, hit) }
 

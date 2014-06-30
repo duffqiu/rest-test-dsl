@@ -17,15 +17,16 @@ rest-test-dsl
 
 *** Release Notes ***
 
-##0.0.2
-    
-   * Remove end method from client to make the DSL more plain
-   * fix the client bug to close the http client
-   * add one more implicit to make server DSL more plain without add a method if the response is constructed outside DSL
+##0.0.4
+   * bugfix for rest client to share the http client
 
 ##0.0.3
    * upgrade scalatest version to 2.2.0
    * make server dsl code simply
    * fix bugs 
 
-
+##0.0.2
+    
+   * Remove end method from client to make the DSL more plain
+   * fix the client bug to close the http client
+   * add one more implicit to make server DSL more plain without add a method if the response is constructed outside DSL

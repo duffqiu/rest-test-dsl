@@ -46,14 +46,11 @@ case class RestClientWorkActor(val name: String, master: RestClientMasterActor, 
 
             receiveWithin(interval) {
                 case RestTestTaskMessage(resource, req, operation, resp, expectResult) => {
-                    //                    println("[" + name + "]" + System.currentTimeMillis() + ": begin handler " + operation + " in worker")
 
                     try {
                         client ask_for resource to operation by req should expectResult and_with {
                             resultResp: RestResponse =>
                                 testFun(server, resource, req, operation, resp, resultResp)
-                            //								println("[" + name + "]send message by client worker, expect: " + expectResult)
-
                         }
                     } catch {
 
@@ -64,17 +61,14 @@ case class RestClientWorkActor(val name: String, master: RestClientMasterActor, 
                             println("[" + name + "]got unknow exception: " + t)
                     }
 
-                    //  println("[" + name + "]" + System.currentTimeMillis() + ": end handler " + operation + " in worker")
-
                 }
                 case CLIENT_BYE =>
-                    //					println("debug: worker(" + name + ") receive bye from master")
+                    client.stop
                     isExit = true
                 case Exit(linked, reason) =>
-                    //					println("master exit because " + reason)
+                    client.stop
                     isExit = true;
                 case TIMEOUT =>
-                //					println("timeout in client worker actor(" + name + ")")
 
                 case _ =>
                     println("[" + name + "]receive unknown message in client worker")
