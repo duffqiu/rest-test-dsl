@@ -1,4 +1,4 @@
-package org.duffqiu.rest.com
+package org.duffqiu.rest.common
 
 import org.duffqiu.rest.common.REST_STYLE
 import org.duffqiu.rest.common.RestResource

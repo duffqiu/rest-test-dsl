@@ -1,4 +1,4 @@
-package org.duffqiu.rest.com
+package org.duffqiu.rest.common
 
 import org.duffqiu.rest.common.EmptyBody
 import org.duffqiu.rest.common.RestBody
