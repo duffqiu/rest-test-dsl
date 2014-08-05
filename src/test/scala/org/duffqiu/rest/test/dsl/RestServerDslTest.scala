@@ -67,7 +67,8 @@ class RestServerDslTest extends FunSpec with Matchers with BeforeAndAfter
     describe("Rest server and client DSL Testing") {
 
         before {
-            aServer = "Server" on TEST_PORT
+            aServer = "Server" on TEST_PORT withLog
+
             aClient = "Client" -> LOCAL_HOST on TEST_PORT
 
         }

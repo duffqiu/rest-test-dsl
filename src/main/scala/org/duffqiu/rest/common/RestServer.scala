@@ -23,17 +23,41 @@ import com.github.dreamhead.moco.Runner
 import com.github.dreamhead.moco.Runner.runner
 import com.github.dreamhead.moco.handler.AndResponseHandler
 import com.github.dreamhead.moco.handler.StatusCodeResponseHandler
+import com.github.dreamhead.moco.Moco.log
 
 object RestServer {
     private[common] final val DEFAULT_NAME = "MocoServer"
     private[common] final val DEFAULT_PORT = 8080
 }
 
-class RestServer(val name: String = RestServer.DEFAULT_NAME, port: Int = RestServer.DEFAULT_PORT) {
+class RestServer(val name: String = RestServer.DEFAULT_NAME, port: Int = RestServer.DEFAULT_PORT, needLog: Boolean = false) {
     val hit = requestHit() // not used when using log
-    val server = port match { case 0 => httpserver(hit); case _ => httpserver(port, hit) }
+
+    val server = (port, needLog) match {
+
+        case (0, true) => httpserver(RestServer.DEFAULT_PORT, hit, log("moco.log"))
+
+        case (0, false) => httpserver(RestServer.DEFAULT_PORT, hit)
+
+        case (xPort, true) if validPort(xPort) => httpserver(xPort, hit, log("moco.log"))
+
+        case (xPort, false) if validPort(xPort) => httpserver(xPort, hit)
+
+        case _ => throw new Exception("Illegel port value")
+
+    }
 
     val mocoRun: Runner = runner(server)
+
+    private def validPort(port: Int) = {
+        if (port > 0 && port < 65536) {
+            true
+        } else {
+            false
+        }
+    }
+
+    def withLog = new RestServer(name, port, true)
 
     def run = {
         mocoRun.start()
