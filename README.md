@@ -1,5 +1,7 @@
 rest-test-dsl
 =============
+
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/duffqiu/rest-test-dsl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/duffqiu/rest-test-dsl.svg?branch=develop)](https://travis-ci.org/duffqiu/rest-test-dsl)
 
 - it is a test DSL for restful client and server based on moco and dispatch. (since scala2.10.4)
